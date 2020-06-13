@@ -12,6 +12,8 @@ import 'screens/SettingsScreen.dart';
 import 'screens/EditProfileScreen.dart';
 import 'screens/UploadImageScreen.dart';
 import 'screens/QRScanner.dart';
+import 'screens/PaymentScreen.dart';
+import 'screens/TripCompleteScreen.dart';
 
 void main() => runApp(new Myan_Lyca());
 
@@ -54,6 +56,8 @@ class Myan_Lyca extends StatelessWidget {
 				'/SettingsScreen': (BuildContext context) => new SettingsScreen(),
 				'/EditProfileScreen': (BuildContext context) => new EditProfileScreen(),
 				'/UploadImageScreen': (BuildContext context) => new UploadImageScreen(),
+				'/PaymentByCardScreen': (BuildContext context) => new PaymentScreen(),
+				'/TripCompleteScreen': (BuildContext context) => new TripCompleteScreen(),
 			}
 		);
 	}

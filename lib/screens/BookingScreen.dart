@@ -49,6 +49,7 @@ class BookingScreenState extends State<BookingScreen> {
   bool isDriverArrivedandStartedTrip = false;
   bool rideStarted = false;
   bool istripStarted = false;
+  bool isTripCompleted = false;
 
   int tripDistance = 0;
   Timer _every10Sec = null;
@@ -140,6 +141,7 @@ class BookingScreenState extends State<BookingScreen> {
         child: Stack(
           children: <Widget>[
             googleMap(),
+            setMyLocation(),
             // pickupLocationSearch(),
             dropLocationSearch(),
             Visibility(
@@ -162,7 +164,10 @@ class BookingScreenState extends State<BookingScreen> {
               visible: istripStarted,
               child: tripStartedWidget(),
             ),
-            setMyLocation()
+            Visibility(
+              visible: isTripCompleted,
+              child: completeTripPopUp(),
+            ),
           ],
         ),
       )
@@ -304,75 +309,82 @@ class BookingScreenState extends State<BookingScreen> {
   }
 
   Widget setMyLocation(){
-    return Positioned(
-      top: MediaQuery.of(context).size.height * 0.68,
-      // left: MediaQuery.of(context).size.width * 0.52,
-      child: Row(
-        // mainAxisAlignment: MainAxisAlignment.start,
-        // crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.73,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: <Widget>[
-          FlatButton(
-            onPressed: () {
-              getLocation();
-              cameraMove(currentLocation.latitude, currentLocation.longitude);
-              // drawPolylineRequest();
-            },
-            child: new Icon(
-              Icons.my_location,
-              color: Colors.black,
-              size: 20.0,
-            ),
-            shape: new CircleBorder(),
-            color: Colors.white,
-          ),
-          // SizedBox(width: MediaQuery.of(context).size.width * 0.35),
-          // Container(
-          // // width: 210,
-          // child: RaisedButton(
-          //   shape: RoundedRectangleBorder(
-          //         borderRadius: BorderRadius.all(Radius.circular(10.0))),
-          //   onPressed: ()async { 
-          //     // Navigator.pushNamed(context, '/QRScanner');
-          //     if(bookedDriverId != ""){
-          //       bookedDriverId = "";
-          //       setState(() {
-          //         onCabSelectStep = true;
-          //         onPaymentSelectStep = false;
-          //         onDriverSideConfirmationStep = false;
-          //         rideStarted = false;
-          //       });
-          //     }else{
-          //       await _scanQR();
-          //     }
-          //   },
-          //   textColor: Colors.white,
-          //   color: Colors.red,
-          //   padding: EdgeInsets.fromLTRB(5, 0, 5, 0),
-          //   child: Padding(
-          //     padding: EdgeInsets.fromLTRB(0,0,0,0),
-          //       child: Row(
-          //         crossAxisAlignment: CrossAxisAlignment.center,
-          //         children: <Widget>[ 
-          //           Container(
-          //             color: Colors.red,
-          //             padding: EdgeInsets.fromLTRB(10, 4, 4, 4),
-          //             child: Text( bookedDriverId != "" ? "Unselect Scanned Driver" : 'Start Trip By Scan Code', style: TextStyle(color: Colors.white)),
-          //           ),
-          //           Padding(
-          //             padding: EdgeInsets.fromLTRB(4, 0, 10, 0),
-          //             child: bookedDriverId != "" ? Icon(Icons.cancel) : Image.asset(
-          //               "assets/images/qr-code.png",
-          //               width: MediaQuery.of(context).size.width * 0.05
-          //             ),
-          //           ),
-          //         ],
-          //       )
-          //     )
-          //   )
-          // )
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              FlatButton(
+                onPressed: () {
+                  getLocation();
+                  cameraMove(currentLocation.latitude, currentLocation.longitude);
+                  // drawPolylineRequest();
+                },
+                child: new Icon(
+                  Icons.my_location,
+                  color: Colors.black,
+                  size: 20.0,
+                ),
+                shape: new CircleBorder(),
+                color: Colors.white,
+              ),
+              Container(
+              child: RaisedButton(
+                shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(10.0))),
+                onPressed: ()async { 
+                  if(bookedDriverId != ""){
+                    bookedDriverId = "";
+                    setState(() {
+                      onCabSelectStep = true;
+                      onPaymentSelectStep = false;
+                      onDriverSideConfirmationStep = false;
+                      rideStarted = false;
+                    });
+                  }else{
+                    await _scanQR();
+                  }
+                },
+                textColor: Colors.white,
+                color: Colors.red,
+                padding: EdgeInsets.fromLTRB(5, 0, 5, 0),
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(0,0,0,0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[ 
+                        Container(
+                          color: Colors.red,
+                          padding: EdgeInsets.fromLTRB(10, 4, 4, 4),
+                          child: Text( bookedDriverId != "" ? "Unselect Scanned Driver" : 'Start Trip By Scan Code', style: TextStyle(color: Colors.white)),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(4, 0, 10, 0),
+                          child: bookedDriverId != "" ? Icon(Icons.cancel) : Image.asset(
+                            "assets/images/qr-code.png",
+                            width: MediaQuery.of(context).size.width * 0.05
+                          ),
+                        ),
+                      ],
+                    )
+                  )
+                )
+              )
+            ],
+          )
         ],
       )
     );
+    // return Positioned(
+    //   top: MediaQuery.of(context).size.height * 0.68,
+    //   // left: MediaQuery.of(context).size.width * 0.52,
+    //   child: 
+    // );
   }
   Widget pickupLocationSearch(){
     return Positioned(
@@ -659,7 +671,7 @@ class BookingScreenState extends State<BookingScreen> {
                   visible: waitingForDriverConfirmation,
                   child: Center(
                     child: Text(
-                      "Finding Nearby Cabs", 
+                      bookedDriverId != "" ? "Waiting for Driver to accept trip" : "Finding Nearby Cabs", 
                       style: TextStyle(
                         fontSize: MediaQuery.of(context).size.width * 0.050,
                         fontWeight: FontWeight.w500
@@ -667,6 +679,7 @@ class BookingScreenState extends State<BookingScreen> {
                     )
                   )
                 ),
+                SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -803,7 +816,7 @@ class BookingScreenState extends State<BookingScreen> {
               children: <Widget>[
                 Center(
                   child: Text(
-                    "Driver arriving shortly", 
+                    bookedDriverId != "" ? "Waiting for driver confirmation" : "Driver arriving shortly", 
                     style: TextStyle(
                       fontSize: MediaQuery.of(context).size.width * 0.050,
                       fontWeight: FontWeight.w500
@@ -1080,7 +1093,7 @@ class BookingScreenState extends State<BookingScreen> {
                         textColor: Colors.white,
                         padding: EdgeInsets.all(5.0),
                         onPressed: () async {
-                          endTrip();
+                          completedTrip();
                         },
                         child: Container(
                           width: MediaQuery.of(context).size.width * 0.80,
@@ -1293,6 +1306,7 @@ class BookingScreenState extends State<BookingScreen> {
     );
   }
 
+  // not of any use
   endTrip() async {
     await completedTrip();
     _polyLines.clear();
@@ -1316,6 +1330,7 @@ class BookingScreenState extends State<BookingScreen> {
     _markers.removeWhere((m) => m.markerId.value == "dest_loc");
     cameraMove(currentLocation.latitude, currentLocation.longitude);
     setState(() {
+      isTripCompleted = false;
       bookedTripData = null;
       onCabSelectStep = true;
       onPaymentSelectStep = false;
@@ -1323,86 +1338,193 @@ class BookingScreenState extends State<BookingScreen> {
       rideStarted = false;
       waitingForDriverConfirmation = false;
       isDriverArrivedandStartedTrip = false;
-
+      istripStarted = false;
     });
   }
 
   completedTrip() async {
+    var trip_amount = ((((tripDistance != 0 ? tripDistance : 0) * (selectedCabTypeRate != null ? int.parse(selectedCabTypeRate): 0 ))/1000) ).round().toString();
     await cabbookingService.updateByTripID(user.auth_key, bookedTripData["booking_id"],"2");
-    showDialog<ConfirmAction>(
-      context: context,
-      barrierDismissible: true, // user must tap button for close dialog!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Center( child:Text('TRIP COMPLETED',style: TextStyle(fontSize: 30))),
-          content: Container(
-            height: MediaQuery.of(context).size.height * 0.45,
-            child: Column(
-              children: <Widget>[
-                Container(
-                  margin: EdgeInsets.only(
-                    // top: MediaQuery.of(context).size.height * 0.05,
-                    bottom: MediaQuery.of(context).size.height * 0.01
+    await cabbookingService.updateTripAmountByTripID(user.auth_key,bookedTripData["booking_id"],trip_amount,bookedTripData["status"].toString());
+    setState(() {
+      istripStarted = false;
+      isTripCompleted = true;
+      onCabSelectStep = false;
+      onPaymentSelectStep = false;
+      onDriverSideConfirmationStep = false;
+      rideStarted = false;
+      waitingForDriverConfirmation = false;
+      isDriverArrivedandStartedTrip = false;
+    });
+  }
+
+  completeTripPopUp(){
+    return Visibility(
+      visible: isTripCompleted,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: <Widget>[
+          Stack(
+            children: <Widget>[
+              Center(
+                child: Container(
+                  margin: EdgeInsets.only(top:50),
+                  width: MediaQuery.of(context).size.width * 0.95,
+                  child:Card(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        SizedBox(height: MediaQuery.of(context).size.height * 0.1),
+                        Text(
+                          "Trip completed!", 
+                          style: TextStyle(
+                            fontSize: MediaQuery.of(context).size.width * 0.060,
+                            // fontWeight: FontWeight.w200
+                          )
+                        ),
+                        // SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+                        // Text(
+                        //   bookedTripData != null ? bookedTripData["driver_name"] : "", 
+                        //   style: TextStyle(
+                        //     fontSize: MediaQuery.of(context).size.width * 0.040,
+                        //     // fontWeight: FontWeight.w200
+                        //   )
+                        // ),
+                        SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+                        Text(
+                          "How is your trip?", 
+                          style: TextStyle(
+                            fontSize: MediaQuery.of(context).size.width * 0.060,
+                            // fontWeight: FontWeight.w200
+                          )
+                        ),
+                        SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+                        Text(
+                          "Your feedback will help in improving driving experience", 
+                          style: TextStyle(
+                            fontSize: MediaQuery.of(context).size.width * 0.030,
+                            // fontWeight: FontWeight.w200
+                          )
+                        ),
+                        SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+                        RatingBar(
+                          initialRating: bookedTripData != null ? bookedTripData["driver_rating"] : 0,
+                          minRating: 1,
+                          direction: Axis.horizontal,
+                          allowHalfRating: true,
+                          itemCount: 5,
+                          itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
+                          itemBuilder: (context, _) => Icon(
+                            Icons.star,
+                            color: Colors.red,
+                          ),
+                          itemSize: MediaQuery.of(context).size.width * 0.080,
+                          onRatingUpdate: (rating) {
+                            print(rating);
+                          },
+                        ),
+                        SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+                        RaisedButton( 
+                          color: Colors.red,
+                          textColor: Colors.white,
+                          padding: EdgeInsets.all(5.0),
+                          onPressed: () async {
+                            print("review done");
+                          },
+                          child: Container(
+                            width: MediaQuery.of(context).size.width * 0.50,
+                            child: Center(
+                              child: Text(
+                                'Write Review',
+                                style: TextStyle(
+                                  fontSize: MediaQuery.of(context).size.width * 0.030
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: MediaQuery.of(context).size.height * 0.005),
+                        RaisedButton( 
+                          color: Colors.red,
+                          textColor: Colors.white,
+                          padding: EdgeInsets.all(5.0),
+                          onPressed: () async {
+                            _paymentDialog(context);
+                          },
+                          child: Container(
+                            width: MediaQuery.of(context).size.width * 0.50,
+                            child: Center(
+                              child: Text(
+                                'Pay Driver',
+                                style: TextStyle(
+                                  fontSize: MediaQuery.of(context).size.width * 0.030
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: MediaQuery.of(context).size.height * 0.005),
+                        RaisedButton( 
+                          color: Colors.red,
+                          textColor: Colors.white,
+                          padding: EdgeInsets.all(5.0),
+                          onPressed: () async {
+                            _polyLines.clear();
+                            _markers.removeWhere((m) => m.markerId.value == "dest_loc");
+                            cameraMove(currentLocation.latitude, currentLocation.longitude);
+                            setState(() {
+                              isTripCompleted = false;
+                              bookedTripData = null;
+                              onCabSelectStep = true;
+                              onPaymentSelectStep = false;
+                              onDriverSideConfirmationStep = false;
+                              rideStarted = false;
+                              waitingForDriverConfirmation = false;
+                              isDriverArrivedandStartedTrip = false;
+                              istripStarted = false;
+                            });
+                          },
+                          child: Container(
+                            width: MediaQuery.of(context).size.width * 0.50,
+                            child: Center(
+                              child: Text(
+                                'Exit',
+                                style: TextStyle(
+                                  fontSize: MediaQuery.of(context).size.width * 0.030
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+                      ],
+                    )
                   ),
-                  width: MediaQuery.of(context).size.height * 0.22,
-                  height: MediaQuery.of(context).size.height * 0.22,
+                )
+              ),
+              Center(
+                child: Container(
+                  width: MediaQuery.of(context).size.width * 0.3,
+                  height: MediaQuery.of(context).size.height * 0.15,
                   decoration: new BoxDecoration(
                       shape: BoxShape.circle,
-                      // border: Border.all(color: Colors.black),
                       image: new DecorationImage(
-                        fit: BoxFit.cover,
-                        image: user != null ? new NetworkImage(
-                          "http://mltaxi.codeartweb.com/"+ bookedTripData['driver_profile_image']
-                        ) : ""
+                          fit: BoxFit.cover,
+                          image: new NetworkImage( 
+                              user != null 
+                                ? (user.profile_image != null ? "http://mltaxi.codeartweb.com/"+user.profile_image: "")
+                                : "http://mltaxi.codeartweb.com/media/profileimage/profile-pic.jpg"
+                          )
                       )
-                  ),
+                  )
                 ),
-                Center(
-                  child: Text("Trip Summary",style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.05)),
-                ),
-                Center(
-                  child: Text(bookedTripData["driver_name"],style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.05)),
-                ),
-                Center(
-                  child: Text(bookedTripData["driver_contact_number"],style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.05)),
-                ),
-                SizedBox(height:20),
-                Center(
-                  child: Text("Trip total Cost",style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.05)),
-                ),
-                Center(
-                  child: Text(bookedTripData["amount"] != null ? bookedTripData["amount"] : "0" ,style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.20)),
-                ),
-              ],
-            )
-          ),
-          actions: <Widget>[
-            Center(
-              child: RaisedButton(
-                color: Colors.green,
-                textColor: Colors.white,
-                padding: EdgeInsets.all(10.0),
-                child: const Text('Pay with Scan Code',style: TextStyle(fontSize: 20)),
-                onPressed: () async{
-                  _scanQR();
-                },
               )
-            ),
-            Center(
-              child: RaisedButton(
-                color: Colors.grey[400],
-                textColor: Colors.white,
-                padding: EdgeInsets.all(10.0),
-                child: const Text('Exit',style: TextStyle(fontSize: 20)),
-                onPressed: () {
-                  Navigator.of(context).pop(ConfirmAction.CANCEL);
-                  cancleTrip();
-                },
-              )
-            )
-          ],
-        );
-      },
+            ],
+          )
+        ],
+      ),
     );
   }
 
@@ -1474,7 +1596,7 @@ class BookingScreenState extends State<BookingScreen> {
       
     });
   }
-
+  
   updateCurrentTripStatus() async {
     print("::::::::");
     print(bookedTripData);
@@ -1532,10 +1654,70 @@ class BookingScreenState extends State<BookingScreen> {
     }
   }
 
+  Future<String> _paymentDialog(BuildContext context) async {
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false, // dialog is dismissible with a tap on the barrier
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Column(
+            children: <Widget>[
+              Text('Pay driver from wallet',style: TextStyle(fontSize: 30)),
+              Text('Trip total amount: '+ bookedTripData["amount"],style: TextStyle(fontSize: 20))
+            ],
+          ),
+          content: new Row(
+            children: <Widget>[
+              new Expanded(
+                child: new TextField(
+                  style: new TextStyle(
+                    // color: Colors.white,
+                    fontSize:  MediaQuery.of(context).size.width * 0.1,
+                    fontWeight: FontWeight.w400
+                  ),
+                  keyboardType: TextInputType.number,
+                  autofocus: true,
+                  decoration: new InputDecoration(
+                    labelStyle: TextStyle(
+                      fontSize: 30,
+                    ),
+                    labelText: 'Amount (K)', hintText: bookedTripData["amount"]),
+                  onChanged: (value) {
+                    print(value);
+                  },
+                )
+              )
+            ],
+          ),
+          actions: <Widget>[
+            RaisedButton(
+              color: Colors.grey,
+              textColor: Colors.white,
+              padding: EdgeInsets.all(10.0),
+              child: const Text('Cancel',style: TextStyle(fontSize: 20)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            RaisedButton(
+              color: Colors.green,
+              textColor: Colors.white,
+              padding: EdgeInsets.all(10.0),
+              child: const Text('Pay',style: TextStyle(fontSize: 20)),
+              onPressed: () {
+                // Navigator.of(context).pop(teamName);
+              },
+            )
+          ],
+        );
+      },
+    );
+  }
+
   Future _scanQR() async {
     try {
       String cameraScanResult = await scanner.scan();
-      print("Scannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn on booking page");
+      print("Scannnnnnnn on booking page");
       print(cameraScanResult);
       bookedDriverId = cameraScanResult;
       setState(() {
