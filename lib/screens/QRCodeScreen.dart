@@ -7,6 +7,9 @@ import 'package:qrscan/qrscan.dart' as scanner;
 import 'package:flutter/services.dart';
 
 class QRCodeScreen extends StatefulWidget {
+  final String driverID;
+  const QRCodeScreen(this.driverID);
+
   @override
   QRCodeScreenState createState() => QRCodeScreenState();
 }
@@ -21,24 +24,6 @@ class QRCodeScreenState extends State<QRCodeScreen> {
     super.initState();
     this._inputController = new TextEditingController();
     this._outputController = new TextEditingController();
-
-    _scanQR();
-  }
-
-  String result = "Hello World...!";
-  Future _scanQR() async {
-    try {
-      String cameraScanResult = await scanner.scan();
-      print("Scannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn");
-
-      setState(() {
-        result = cameraScanResult; 
-        // setting string result with cameraScanResult
-        // data will come here so write code here
-      });
-    } on PlatformException catch (e) {
-      print(e);
-    }
   }
 
   @override
@@ -69,7 +54,7 @@ class QRCodeScreenState extends State<QRCodeScreen> {
               )
             ),
             Center(
-              child: Text('Driver Name',style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.03,color: Colors.black)),
+              child: Text('Driver Name '+ widget.driverID ,style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.03,color: Colors.black)),
             ),
             Center(
               child: Text('201 Successful Trips',style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.02,color: Colors.green)),
@@ -92,7 +77,8 @@ class QRCodeScreenState extends State<QRCodeScreen> {
               textColor: Colors.white,
               padding: EdgeInsets.all(5.0),
               onPressed: (){
-                _scanQR();
+                Navigator.of(context).pop();
+                Navigator.pushNamed(context, '/QRScanner');
               },
               child: Container(
                 width: MediaQuery.of(context).size.width * 0.70,
@@ -111,8 +97,8 @@ class QRCodeScreenState extends State<QRCodeScreen> {
               color: Colors.red,
               textColor: Colors.white,
               padding: EdgeInsets.all(5.0),
-              onPressed: (){
-                print('clicked on continue btn');
+              onPressed: () async {
+                await bookPrefferedDriver(widget.driverID); 
               },
               child: Container(
                 width: MediaQuery.of(context).size.width * 0.70,
@@ -177,4 +163,8 @@ class QRCodeScreenState extends State<QRCodeScreen> {
       // floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
+
+  bookPrefferedDriver(driverId) async {
+
+  } 
 }

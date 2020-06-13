@@ -11,11 +11,18 @@ import '../services/GoogleMapApiService.dart';
 import '../resources/UserRepository.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:qrscan/qrscan.dart' as scanner;
+import 'package:flutter/cupertino.dart';
+import 'dart:typed_data';
+import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class BookingScreen extends StatefulWidget {
   @override
   State<BookingScreen> createState() => BookingScreenState();
 }
+
+enum ConfirmAction { CANCEL, ACCEPT }
 
 class BookingScreenState extends State<BookingScreen> {
   bool loading = true;
@@ -32,20 +39,26 @@ class BookingScreenState extends State<BookingScreen> {
   static LatLng latLng;
   LatLng selectedCurrentLocation;
   LatLng selectedDestination;
+  String selectedDestinationText;
 
   LocationData currentLocation;
 
   bool onCabSelectStep = true;
   bool onPaymentSelectStep = false;
   bool onDriverSideConfirmationStep = false;
+  bool isDriverArrivedandStartedTrip = false;
   bool rideStarted = false;
+  bool istripStarted = false;
 
   int tripDistance = 0;
+  Timer _every10Sec = null;
+  String _selectedPaymentMethod = "Wallet";
 
   BitmapDescriptor driverIcon;
   BitmapDescriptor destLocIcon;
   BitmapDescriptor curLocIcon;
-
+  
+  bool completeTripPOPUPShown = false;
   var userRepository = new UserRepository();
   
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
@@ -60,7 +73,8 @@ class BookingScreenState extends State<BookingScreen> {
   var cabTypeData;
   var user;
   var bookingId = null;
-  var bookedDriverId = null;
+  var bookedDriverId = "";
+  var bookedTripData = null;
 
   var availableCabsType;
   var cabbookingService = new CabTypeService();
@@ -68,7 +82,7 @@ class BookingScreenState extends State<BookingScreen> {
   @override
   void initState(){
     loading = true;
-    
+
     BitmapDescriptor.fromAssetImage(ImageConfiguration(size: Size(48, 48)), 'assets/images/drop-location.png')
         .then((onValue) {
       destLocIcon = onValue;
@@ -87,8 +101,12 @@ class BookingScreenState extends State<BookingScreen> {
 
     getUserData();
     
-    new Timer.periodic(const Duration(seconds:10), (Timer t) => updateMarkersOfDriversNearMe());
+    if(_every10Sec == null){
+      _every10Sec = new Timer.periodic(const Duration(seconds:10), (Timer t) => updateMarkersOfDriversNearMe());
+    }
 
+    new Timer.periodic(const Duration(seconds:3), (Timer t) => updateCurrentTripStatus());
+    
     location.onLocationChanged.listen((  currentLocation) {
       latLng =  LatLng(currentLocation.latitude, currentLocation.longitude);
       print(" >>>>>>>>> current Location:$latLng <<<<<<<<<<<<");
@@ -135,6 +153,14 @@ class BookingScreenState extends State<BookingScreen> {
             Visibility(
               visible: onDriverSideConfirmationStep,
               child: waitingForDriverConfirmationWidget(),
+            ),
+            Visibility(
+              visible: isDriverArrivedandStartedTrip,
+              child: isDriverArrivedandStartedTripWidget(),
+            ),
+            Visibility(
+              visible: istripStarted,
+              child: tripStartedWidget(),
             ),
             setMyLocation()
           ],
@@ -245,12 +271,16 @@ class BookingScreenState extends State<BookingScreen> {
   }
 
   void updateMarkersOfDriversNearMe() async {
+    print("user.auth_key");
+    print(user.auth_key);
     var drivers = await cabbookingService.getNearbyCabs(user.auth_key, currentLocation.latitude.toString(), currentLocation.longitude.toString());
     if(drivers.length > 0){
       for(var i=0; i<drivers.length;i++){
         if(drivers[i] != null){
-          print("Updateing Driver "+ drivers[i]["driver_id"] + " <<<<<<<<<<<<<<<<<<<<<<");
-          _addMarker('driver-'+drivers[i]["driver_id"], LatLng(double.parse(drivers[i]["latitude"]), double.parse(drivers[i]["longitude"])) );
+          if( drivers[i]["latitude"] != null && double.parse(drivers[i]["longitude"]) != null ){
+            print("Updateing Driver "+ drivers[i]["driver_id"] + " <<<<<<<<<<<<<<<<<<<<<<");
+            _addMarker('driver-'+drivers[i]["driver_id"], LatLng(double.parse(drivers[i]["latitude"]), double.parse(drivers[i]["longitude"])) );
+          }
         }
       }
     }
@@ -275,11 +305,11 @@ class BookingScreenState extends State<BookingScreen> {
 
   Widget setMyLocation(){
     return Positioned(
-      top: MediaQuery.of(context).size.height * 0.69,
-      left: MediaQuery.of(context).size.width * 0.82,
+      top: MediaQuery.of(context).size.height * 0.68,
+      // left: MediaQuery.of(context).size.width * 0.52,
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.end,
+        // mainAxisAlignment: MainAxisAlignment.start,
+        // crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           FlatButton(
             onPressed: () {
@@ -294,7 +324,52 @@ class BookingScreenState extends State<BookingScreen> {
             ),
             shape: new CircleBorder(),
             color: Colors.white,
-          )
+          ),
+          // SizedBox(width: MediaQuery.of(context).size.width * 0.35),
+          // Container(
+          // // width: 210,
+          // child: RaisedButton(
+          //   shape: RoundedRectangleBorder(
+          //         borderRadius: BorderRadius.all(Radius.circular(10.0))),
+          //   onPressed: ()async { 
+          //     // Navigator.pushNamed(context, '/QRScanner');
+          //     if(bookedDriverId != ""){
+          //       bookedDriverId = "";
+          //       setState(() {
+          //         onCabSelectStep = true;
+          //         onPaymentSelectStep = false;
+          //         onDriverSideConfirmationStep = false;
+          //         rideStarted = false;
+          //       });
+          //     }else{
+          //       await _scanQR();
+          //     }
+          //   },
+          //   textColor: Colors.white,
+          //   color: Colors.red,
+          //   padding: EdgeInsets.fromLTRB(5, 0, 5, 0),
+          //   child: Padding(
+          //     padding: EdgeInsets.fromLTRB(0,0,0,0),
+          //       child: Row(
+          //         crossAxisAlignment: CrossAxisAlignment.center,
+          //         children: <Widget>[ 
+          //           Container(
+          //             color: Colors.red,
+          //             padding: EdgeInsets.fromLTRB(10, 4, 4, 4),
+          //             child: Text( bookedDriverId != "" ? "Unselect Scanned Driver" : 'Start Trip By Scan Code', style: TextStyle(color: Colors.white)),
+          //           ),
+          //           Padding(
+          //             padding: EdgeInsets.fromLTRB(4, 0, 10, 0),
+          //             child: bookedDriverId != "" ? Icon(Icons.cancel) : Image.asset(
+          //               "assets/images/qr-code.png",
+          //               width: MediaQuery.of(context).size.width * 0.05
+          //             ),
+          //           ),
+          //         ],
+          //       )
+          //     )
+          //   )
+          // )
         ],
       )
     );
@@ -375,6 +450,7 @@ class BookingScreenState extends State<BookingScreen> {
                     // var destCoord = await _googleMapsServices.latLngByPlaceId(suggestion['place_id']);
                     this._typeAheadController.text = suggestion["name"];
                     selectedDestination = LatLng(suggestion["lat"],suggestion["lng"]);
+                    selectedDestinationText = suggestion["name"];
                     drawPolylineRequest();
                   },
                 ),
@@ -579,6 +655,18 @@ class BookingScreenState extends State<BookingScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
+                Visibility(
+                  visible: waitingForDriverConfirmation,
+                  child: Center(
+                    child: Text(
+                      "Finding Nearby Cabs", 
+                      style: TextStyle(
+                        fontSize: MediaQuery.of(context).size.width * 0.050,
+                        fontWeight: FontWeight.w500
+                      )
+                    )
+                  )
+                ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -589,17 +677,49 @@ class BookingScreenState extends State<BookingScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: <Widget>[
-                          Image.asset(
-                            "assets/images/pay-mode@3x.png",
-                            width: MediaQuery.of(context).size.width * 0.15
-                          ),
-                          SizedBox(width: MediaQuery.of(context).size.width * 0.05),
-                          Text(
-                            'Cash',
-                            style: TextStyle(
-                              fontSize: MediaQuery.of(context).size.width * 0.050,
-                              fontWeight: FontWeight.w500
-                            ),
+                          Center(
+                            child: new Container (
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton(
+                                  value: _selectedPaymentMethod,
+                                  items: [
+                                    DropdownMenuItem(
+                                      child: Container(
+                                        child: Row(
+                                          children: <Widget>[
+                                            Image.asset(
+                                              "assets/images/wallet.png",
+                                              width: MediaQuery.of(context).size.width * 0.15
+                                            ),
+                                            Text("Wallet")
+                                          ],
+                                        ),
+                                      ),
+                                      value: "Wallet"
+                                    ),
+                                    DropdownMenuItem(
+                                      child: Container(
+                                        child: Row(
+                                          children: <Widget>[
+                                            Image.asset(
+                                              "assets/images/payment@3x.png",
+                                              width: MediaQuery.of(context).size.width * 0.15
+                                            ),
+                                            Text("Cash")
+                                          ],
+                                        ),
+                                      ),
+                                      value: "Cash"
+                                    ),
+                                  ],
+                                  onChanged: (selectedItem){
+                                    setState((){
+                                      _selectedPaymentMethod = selectedItem;
+                                    });
+                                  }
+                                )
+                              ) 
+                            )
                           )
                         ],
                       ),
@@ -632,14 +752,14 @@ class BookingScreenState extends State<BookingScreen> {
                   color: Colors.red,
                   textColor: Colors.white,
                   padding: EdgeInsets.all(5.0),
-                  onPressed: (){
+                  onPressed: () async {
                     setState(() {
                       onCabSelectStep = false;
                       onPaymentSelectStep = true;
                       onDriverSideConfirmationStep = false;
                       waitingForDriverConfirmation = true;
                     });
-                  bookRideAndCreateTrip();
+                  await createTrip();
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width * 0.70,
@@ -661,45 +781,328 @@ class BookingScreenState extends State<BookingScreen> {
     );
   }
 
-  bookRideAndCreateTrip() async {
-    // onCabSelectStep = false;
-    // onPaymentSelectStep = false;
-    // onDriverSideConfirmationStep = false;
-    // waitingForDriverConfirmation = true;
-    var tempbookId = await cabbookingService.createTripID(
-      user.auth_key,
-      selectedCabTypeOption.toString(),
-      "TEST",
-      currentLocation.latitude.toString(),
-      currentLocation.longitude.toString(),
-      "TEST",
-      selectedDestination.latitude.toString(),
-      selectedDestination.longitude.toString(),
-      "w"
+  Widget isDriverArrivedandStartedTripWidget(){
+    return Positioned(
+      top: MediaQuery.of(context).size.height * 0.75,
+      child: Container(
+        height: MediaQuery.of(context).size.height * 0.25,
+        width: MediaQuery.of(context).size.width,
+        alignment: Alignment.centerRight,
+        decoration: BoxDecoration(
+          color: Colors.white
+        ),
+        child: Stack(
+          children: <Widget>[
+            Visibility(
+              visible: true,
+              child:LinearProgressIndicator() 
+            ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Center(
+                  child: Text(
+                    "Driver arriving shortly", 
+                    style: TextStyle(
+                      fontSize: MediaQuery.of(context).size.width * 0.050,
+                      fontWeight: FontWeight.w500
+                    )
+                  )
+                ),
+                SizedBox(height:20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Expanded(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: <Widget>[
+                          Image.asset(
+                            "assets/images/car@3x.png",
+                            width: MediaQuery.of(context).size.width * 0.15
+                          ),
+                          SizedBox(width: MediaQuery.of(context).size.width * 0.05),
+                          Column(
+                            children: <Widget>[
+                              Text(
+                                bookedTripData != null ? bookedTripData["driver_name"] : "",
+                                style: TextStyle(
+                                  fontSize: MediaQuery.of(context).size.width * 0.030,
+                                  fontWeight: FontWeight.w500
+                                ),
+                              ),
+                              RatingBar(
+                                initialRating: bookedTripData != null ? bookedTripData["driver_rating"] : 0,
+                                minRating: 1,
+                                direction: Axis.horizontal,
+                                allowHalfRating: true,
+                                itemCount: 5,
+                                // itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
+                                itemBuilder: (context, _) => Icon(
+                                  Icons.star,
+                                  color: Colors.amber,
+                                ),
+                                itemSize: MediaQuery.of(context).size.width * 0.060,
+                                onRatingUpdate: (rating) {
+                                  print(rating);
+                                },
+                              )
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: <Widget>[
+                          Image.asset(
+                            "assets/images/car@3x.png",
+                            width: MediaQuery.of(context).size.width * 0.15
+                          ),
+                          SizedBox(width: MediaQuery.of(context).size.width * 0.05),
+                          Column(
+                            children: <Widget>[
+                              Text( bookedTripData != null ? bookedTripData["car_number"] : "",
+                                style: TextStyle(
+                                  fontSize: MediaQuery.of(context).size.width * 0.030,
+                                  fontWeight: FontWeight.w500
+                                ),
+                              ),
+                              Text(bookedTripData != null ? bookedTripData["car_name"] : "",
+                                style: TextStyle(
+                                  fontSize: MediaQuery.of(context).size.width * 0.020,
+                                  color: Colors.grey
+                                  // fontWeight: FontWeight.w500
+                                ),
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
+                    )
+                    
+                  ]
+                ),
+                SizedBox(height:MediaQuery.of(context).size.height * 0.030),  
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Visibility(
+                      visible: rideStarted,
+                      child: RaisedButton( 
+                        color: Colors.red,
+                        textColor: Colors.white,
+                        padding: EdgeInsets.all(5.0),
+                        onPressed: () async {
+                          print(bookedTripData != null ? bookedTripData["driver_contact_number"] : "");
+                          String url = "tel:"+ (bookedTripData != null ? bookedTripData["driver_contact_number"] : "");   
+                            if (await canLaunch(url)) {
+                              await launch(url);
+                            } else {
+                              throw 'Could not launch $url';
+                            } 
+                        },
+                        child: Container(
+                          width: MediaQuery.of(context).size.width * 0.40,
+                          child: Center(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: <Widget>[
+                                Icon(Icons.local_phone,color:Colors.white),
+                                Text(
+                                  'CALL DRIVER',
+                                  style: TextStyle(
+                                    fontSize: MediaQuery.of(context).size.width * 0.030
+                                  ),
+                                )
+                              ]
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),  
+                    Visibility(visible: rideStarted, child: SizedBox(width:10)),
+                    Visibility(
+                      visible: rideStarted,
+                      child: RaisedButton( 
+                        color: Colors.red,
+                        textColor: Colors.white,
+                        padding: EdgeInsets.all(5.0),
+                        onPressed: () async {
+                          cancleTrip();
+                        },
+                        child: Container(
+                          width: MediaQuery.of(context).size.width * 0.40,
+                          child: Center(
+                            child: Text(
+                              'CANCLE TRIP',
+                              style: TextStyle(
+                                fontSize: MediaQuery.of(context).size.width * 0.030
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),  
+                  ],
+                )
+              ],
+            )
+          ],
+        )
+      )
     );
+  }
 
-    bookingId = tempbookId["booking_id"];
-
-    print("!!!!!!!!!!!!! TRIP GENERATED:  $bookingId !!!!!!!!!!!!!!");
-
-    for(var i = 0; i < 10 ; i++){
-      var temp = await cabbookingService.getBookingIdDataByAccessToken(user.auth_key, bookingId);
-
-      if( (temp["driver_id"] != null) || (i == 3)){
-        print(">>>>>>>>>>>>> DRIVER ACCEPETED CAB <<<<<<<<<<<<<<"+ temp["driver_id"].toString());
-        setState(() {
-          bookedDriverId = 69;//temp["driver_id"];
-          onCabSelectStep = false;
-          onPaymentSelectStep = false;
-          onDriverSideConfirmationStep = true;
-          waitingForDriverConfirmation = false;
-        });
-        break;
-      }else{
-        await new Future.delayed(const Duration(seconds : 5));
-      }
-    }
-    print("!!!!!!!!!!!!! TRIP GENERATED: END  $bookingId !!!!!!!!!!!!!!");
+  Widget tripStartedWidget(){
+    return Positioned(
+      top: MediaQuery.of(context).size.height * 0.75,
+      child: Container(
+        height: MediaQuery.of(context).size.height * 0.25,
+        width: MediaQuery.of(context).size.width,
+        alignment: Alignment.centerRight,
+        decoration: BoxDecoration(
+          color: Colors.white
+        ),
+        child: Stack(
+          children: <Widget>[
+            Visibility(
+              visible: false,
+              child:LinearProgressIndicator() 
+            ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Center(
+                  child: Text(
+                    "Trip Started, Enjoy the Trip !", 
+                    style: TextStyle(
+                      fontSize: MediaQuery.of(context).size.width * 0.050,
+                      fontWeight: FontWeight.w500
+                    )
+                  )
+                ),
+                SizedBox(height:20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Expanded(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: <Widget>[
+                          Image.asset(
+                            "assets/images/car@3x.png",
+                            width: MediaQuery.of(context).size.width * 0.15
+                          ),
+                          SizedBox(width: MediaQuery.of(context).size.width * 0.05),
+                          Column(
+                            children: <Widget>[
+                              Text(
+                                bookedTripData != null ? bookedTripData["driver_name"] : "",
+                                style: TextStyle(
+                                  fontSize: MediaQuery.of(context).size.width * 0.030,
+                                  fontWeight: FontWeight.w500
+                                ),
+                              ),
+                              RatingBar(
+                                initialRating: bookedTripData != null ? bookedTripData["driver_rating"] : 0,
+                                minRating: 1,
+                                direction: Axis.horizontal,
+                                allowHalfRating: true,
+                                itemCount: 5,
+                                // itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
+                                itemBuilder: (context, _) => Icon(
+                                  Icons.star,
+                                  color: Colors.amber,
+                                ),
+                                itemSize: MediaQuery.of(context).size.width * 0.060,
+                                onRatingUpdate: (rating) {
+                                  print(rating);
+                                },
+                              )
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: <Widget>[
+                          Image.asset(
+                            "assets/images/car@3x.png",
+                            width: MediaQuery.of(context).size.width * 0.15
+                          ),
+                          SizedBox(width: MediaQuery.of(context).size.width * 0.05),
+                          Column(
+                            children: <Widget>[
+                              Text( bookedTripData != null ? bookedTripData["car_number"] : "",
+                                style: TextStyle(
+                                  fontSize: MediaQuery.of(context).size.width * 0.030,
+                                  fontWeight: FontWeight.w500
+                                ),
+                              ),
+                              Text(bookedTripData != null ? bookedTripData["car_name"] : "",
+                                style: TextStyle(
+                                  fontSize: MediaQuery.of(context).size.width * 0.020,
+                                  color: Colors.grey
+                                  // fontWeight: FontWeight.w500
+                                ),
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
+                    )
+                    
+                  ]
+                ),
+                SizedBox(height:MediaQuery.of(context).size.height * 0.030),  
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Visibility(
+                      visible: istripStarted,
+                      child: RaisedButton( 
+                        color: Colors.red,
+                        textColor: Colors.white,
+                        padding: EdgeInsets.all(5.0),
+                        onPressed: () async {
+                          endTrip();
+                        },
+                        child: Container(
+                          width: MediaQuery.of(context).size.width * 0.80,
+                          child: Center(
+                            child: Text(
+                              'END TRIP',
+                              style: TextStyle(
+                                fontSize: MediaQuery.of(context).size.width * 0.030
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),  
+                  ],
+                )
+              ],
+            )
+          ],
+        )
+      )
+    );
   }
 
   Widget waitingForDriverConfirmationWidget(){
@@ -739,14 +1142,14 @@ class BookingScreenState extends State<BookingScreen> {
                           Column(
                             children: <Widget>[
                               Text(
-                                'DRIVER NAME',
+                                bookedTripData != null ? bookedTripData["driver_name"] : "",
                                 style: TextStyle(
                                   fontSize: MediaQuery.of(context).size.width * 0.030,
                                   fontWeight: FontWeight.w500
                                 ),
                               ),
                               RatingBar(
-                                initialRating: 3,
+                                initialRating: bookedTripData != null ? bookedTripData["driver_rating"] : 0,
                                 minRating: 1,
                                 direction: Axis.horizontal,
                                 allowHalfRating: true,
@@ -778,13 +1181,13 @@ class BookingScreenState extends State<BookingScreen> {
                           SizedBox(width: MediaQuery.of(context).size.width * 0.05),
                           Column(
                             children: <Widget>[
-                              Text("RJ-14-MYAN",
+                              Text( bookedTripData != null ? bookedTripData["car_number"] : "",
                                 style: TextStyle(
                                   fontSize: MediaQuery.of(context).size.width * 0.030,
                                   fontWeight: FontWeight.w500
                                 ),
                               ),
-                              Text("Hyundai Verna",
+                              Text(bookedTripData != null ? bookedTripData["car_name"] : "",
                                 style: TextStyle(
                                   fontSize: MediaQuery.of(context).size.width * 0.020,
                                   color: Colors.grey
@@ -804,55 +1207,82 @@ class BookingScreenState extends State<BookingScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
-                    RaisedButton( 
-                      color: Colors.white,
-                      textColor: Colors.red,
-                      padding: EdgeInsets.all(5.0),
-                      onPressed: (){
-                        setState(() {
-                          onCabSelectStep = true;
-                          onPaymentSelectStep = false;
-                          onDriverSideConfirmationStep = false;
-                        });
-                      // bookRideAndCretaeTrip();
-                      },
-                      child: Container(
-                        width: MediaQuery.of(context).size.width * 0.40,
-                        child: Center(
-                          child: Text(
-                            'CANCEL',
-                            style: TextStyle(
-                              fontSize: MediaQuery.of(context).size.width * 0.030
+                    Visibility(
+                      visible: !rideStarted,
+                      child: RaisedButton( 
+                        color: Colors.white,
+                        textColor: Colors.red,
+                        padding: EdgeInsets.all(5.0),
+                        onPressed: () async {
+                          await cabbookingService.updateByTripID(user.auth_key, bookedTripData["booking_id"], "0"); //change 3 to unavailable
+                          print("trip canclled");
+                          cancleTrip();
+                        // bookRideAndCretaeTrip();
+                        },
+                        child: Container(
+                          width: MediaQuery.of(context).size.width * 0.40,
+                          child: Center(
+                            child: Text(
+                              'CANCEL',
+                              style: TextStyle(
+                                fontSize: MediaQuery.of(context).size.width * 0.030
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
-                    SizedBox(width:10),  
-                    RaisedButton( 
-                      color: Colors.red,
-                      textColor: Colors.white,
-                      padding: EdgeInsets.all(5.0),
-                      onPressed: (){
-                        // setState(() {
-                        //   onCabSelectStep = false;
-                        //   onPaymentSelectStep = false;
-                        //   onDriverSideConfirmationStep = true;
-                        // });
-                      // bookRideAndCretaeTrip();
-                      },
-                      child: Container(
-                        width: MediaQuery.of(context).size.width * 0.40,
-                        child: Center(
-                          child: Text(
-                            'CONFIRM',
-                            style: TextStyle(
-                              fontSize: MediaQuery.of(context).size.width * 0.030
+                    Visibility(visible: !rideStarted, child: SizedBox(width:10)),
+                    Visibility(
+                      visible: !rideStarted,
+                      child: RaisedButton( 
+                        color: Colors.red,
+                        textColor: Colors.white,
+                        padding: EdgeInsets.all(5.0),
+                        onPressed: () async {
+                          var userdata = await userRepository.fetchUserFromDB();
+                          print("Accepting rider from user end");
+                          await cabbookingService.updateByTripID(userdata.auth_key, bookedTripData["booking_id"],"7");
+                        },
+                        child: Container(
+                          width: MediaQuery.of(context).size.width * 0.40,
+                          child: Center(
+                            child: Text(
+                              'CONFIRM',
+                              style: TextStyle(
+                                fontSize: MediaQuery.of(context).size.width * 0.030
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    )
+                    ),
+                    Visibility(
+                      visible: rideStarted,
+                      child: RaisedButton( 
+                        color: Colors.red,
+                        textColor: Colors.white,
+                        padding: EdgeInsets.all(5.0),
+                        onPressed: () async {
+                          // var userdata = await userRepository.fetchUserFromDB();
+                          // await cabbookingService.updateByTripID(userdata.auth_key, bookedTripData["booking_id"],"1");
+                          // cameraMove(currentLocation.latitude, currentLocation.longitude);
+                          print("call cancle trip >>>>>");
+                          rideStarted = true;
+                        },
+                        child: Container(
+                          width: MediaQuery.of(context).size.width * 0.40,
+                          child: Center(
+                            child: Text(
+                              'CANCLE TRIP',
+                              style: TextStyle(
+                                fontSize: MediaQuery.of(context).size.width * 0.030
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),  
                   ],
                 )
               ],
@@ -862,4 +1292,272 @@ class BookingScreenState extends State<BookingScreen> {
       )
     );
   }
-}
+
+  endTrip() async {
+    await completedTrip();
+    _polyLines.clear();
+    _markers.removeWhere((m) => m.markerId.value == "dest_loc");
+    cameraMove(currentLocation.latitude, currentLocation.longitude);
+    setState(() {
+      // bookedTripData = null;
+      onCabSelectStep = false;
+      onPaymentSelectStep = false;
+      onDriverSideConfirmationStep = false;
+      rideStarted = false;
+      waitingForDriverConfirmation = false;
+      isDriverArrivedandStartedTrip = false;
+      istripStarted = false;
+    });
+  }
+
+  cancleTrip() async {
+    await cabbookingService.updateByTripID(user.auth_key, bookedTripData["booking_id"], "0");
+    _polyLines.clear();
+    _markers.removeWhere((m) => m.markerId.value == "dest_loc");
+    cameraMove(currentLocation.latitude, currentLocation.longitude);
+    setState(() {
+      bookedTripData = null;
+      onCabSelectStep = true;
+      onPaymentSelectStep = false;
+      onDriverSideConfirmationStep = false;
+      rideStarted = false;
+      waitingForDriverConfirmation = false;
+      isDriverArrivedandStartedTrip = false;
+
+    });
+  }
+
+  completedTrip() async {
+    await cabbookingService.updateByTripID(user.auth_key, bookedTripData["booking_id"],"2");
+    showDialog<ConfirmAction>(
+      context: context,
+      barrierDismissible: true, // user must tap button for close dialog!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Center( child:Text('TRIP COMPLETED',style: TextStyle(fontSize: 30))),
+          content: Container(
+            height: MediaQuery.of(context).size.height * 0.45,
+            child: Column(
+              children: <Widget>[
+                Container(
+                  margin: EdgeInsets.only(
+                    // top: MediaQuery.of(context).size.height * 0.05,
+                    bottom: MediaQuery.of(context).size.height * 0.01
+                  ),
+                  width: MediaQuery.of(context).size.height * 0.22,
+                  height: MediaQuery.of(context).size.height * 0.22,
+                  decoration: new BoxDecoration(
+                      shape: BoxShape.circle,
+                      // border: Border.all(color: Colors.black),
+                      image: new DecorationImage(
+                        fit: BoxFit.cover,
+                        image: user != null ? new NetworkImage(
+                          "http://mltaxi.codeartweb.com/"+ bookedTripData['driver_profile_image']
+                        ) : ""
+                      )
+                  ),
+                ),
+                Center(
+                  child: Text("Trip Summary",style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.05)),
+                ),
+                Center(
+                  child: Text(bookedTripData["driver_name"],style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.05)),
+                ),
+                Center(
+                  child: Text(bookedTripData["driver_contact_number"],style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.05)),
+                ),
+                SizedBox(height:20),
+                Center(
+                  child: Text("Trip total Cost",style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.05)),
+                ),
+                Center(
+                  child: Text(bookedTripData["amount"] != null ? bookedTripData["amount"] : "0" ,style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.20)),
+                ),
+              ],
+            )
+          ),
+          actions: <Widget>[
+            Center(
+              child: RaisedButton(
+                color: Colors.green,
+                textColor: Colors.white,
+                padding: EdgeInsets.all(10.0),
+                child: const Text('Pay with Scan Code',style: TextStyle(fontSize: 20)),
+                onPressed: () async{
+                  _scanQR();
+                },
+              )
+            ),
+            Center(
+              child: RaisedButton(
+                color: Colors.grey[400],
+                textColor: Colors.white,
+                padding: EdgeInsets.all(10.0),
+                child: const Text('Exit',style: TextStyle(fontSize: 20)),
+                onPressed: () {
+                  Navigator.of(context).pop(ConfirmAction.CANCEL);
+                  cancleTrip();
+                },
+              )
+            )
+          ],
+        );
+      },
+    );
+  }
+
+  createTrip() async {
+    // onCabSelectStep = false;
+    // onPaymentSelectStep = false;
+    // onDriverSideConfirmationStep = false;
+    // waitingForDriverConfirmation = true;
+
+    var tempbookId = await cabbookingService.createTripID(
+      user.auth_key,
+      selectedCabTypeOption.toString(),
+      "User Current Location",
+      currentLocation.latitude.toString(),
+      currentLocation.longitude.toString(),
+      selectedDestinationText != null ? selectedDestinationText : "Unknown",
+      selectedDestination.latitude.toString(),
+      selectedDestination.longitude.toString(),
+      "w",
+      ((((tripDistance != 0 ? tripDistance : 0) * (selectedCabTypeRate != null ? int.parse(selectedCabTypeRate): 0 ))/1000) ).round(),
+      bookedDriverId
+    );
+
+    bookingId = tempbookId["booking_id"];
+    bookedTripData = await cabbookingService.getBookingIdDataByAccessToken(user.auth_key, bookingId);
+
+    print("!!!!!!!!!!!!! TRIP GENERATED:  $bookingId !!!!!!!!!!!!!!");
+
+    // for(var i = 0; i < 50 ; i++){
+    //   print(bookedTripData); 
+    //   // if( bookedTripData["driver_id"] != null && bookedTripData["status"] == 6 ){
+    //   if( bookedTripData["driver_id"] != null ){
+    //     print(">>>>>>>>>>>>> DRIVER ACCEPETED CAB <<<<<<<<<<<<<<"+ bookedTripData["driver_id"].toString());
+    //     setState(() {
+    //       // bookedDriverId = 69;//temp["driver_id"];
+    //       onCabSelectStep = false;
+    //       onPaymentSelectStep = false;
+    //       onDriverSideConfirmationStep = true;
+    //       waitingForDriverConfirmation = false;
+    //     });
+    //     break;
+    //   }else{
+    //     await new Future.delayed(const Duration(seconds : 5));
+    //   }
+    // }
+    // print("!!!!!!!!!!!!! TRIP GENERATED: END  $bookingId !!!!!!!!!!!!!!");
+  }
+
+  driverConfirmed(){
+    // if( bookedTripData["driver_id"] != null && bookedTripData["status"] == 6 ){
+    print(">>>>>>>>>>>>> DRIVER ACCEPETED CAB <<<<<<<<<<<<<<"+ bookedTripData["driver_id"].toString());
+    setState(() {
+      // bookedDriverId = 69;//temp["driver_id"];
+      onCabSelectStep = false;
+      onPaymentSelectStep = false;
+      onDriverSideConfirmationStep = true;
+      waitingForDriverConfirmation = false;
+    });
+  }
+
+  tripStarted(){
+    setState((){
+      istripStarted = true;
+      onCabSelectStep = false;
+      onPaymentSelectStep = false;
+      onDriverSideConfirmationStep = false;
+      waitingForDriverConfirmation = false;
+
+      
+    });
+  }
+
+  updateCurrentTripStatus() async {
+    print("::::::::");
+    print(bookedTripData);
+    print("::::::::");
+
+    if(bookedTripData != null){
+      bookedTripData = await cabbookingService.getBookingIdDataByAccessToken(user.auth_key, bookedTripData["booking_id"]);
+
+      // cancled trip
+      if(bookedTripData["status"] == 0){
+        cancleTrip();
+      }
+      // trip started
+      if(bookedTripData["status"] == 1  && bookedTripData["driver_id"] != null){
+        tripStarted();
+      }
+
+      // trip complted
+      if(bookedTripData["status"] == 2){
+        if(!completeTripPOPUPShown){
+          completeTripPOPUPShown = true;
+          completedTrip();
+        }
+      }
+
+      // trip unaviaklbe
+      if(bookedTripData["status"] == 3){
+        cancleTrip();
+      }
+
+      // trip free
+      if(bookedTripData["status"] == 4){
+        cancleTrip();
+      }
+
+      // trip booking pending for all online drivers
+      if(bookedTripData["status"] == 5){
+        
+      }
+
+      // booking confirmed by driver
+      if(bookedTripData["status"] == 6 && bookedTripData["driver_id"] != null){
+          driverConfirmed();
+      }
+      
+      // booking confirmed by user now waiting for driver to start ride
+      if(bookedTripData["status"] == 7 && bookedTripData["driver_id"] != null){
+        cameraMove(currentLocation.latitude, currentLocation.longitude);
+        rideStarted = true;
+        waitingForDriverConfirmation = false;
+        isDriverArrivedandStartedTrip = true;
+
+        setState((){});
+      }
+    }
+  }
+
+  Future _scanQR() async {
+    try {
+      String cameraScanResult = await scanner.scan();
+      print("Scannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn on booking page");
+      print(cameraScanResult);
+      bookedDriverId = cameraScanResult;
+      setState(() {
+        
+      });
+      // Navigator.pop(context, cameraScanResult);
+      // Navigator.of(context).push(MaterialPageRoute(builder: (context) => BookingScreen(cameraScanResult)));
+
+      // setState(() {
+      //   scannedDriverID = cameraScanResult; 
+      //   // setting string result with cameraScanResult
+      //   // data will come here so write code here
+      // });
+    } on PlatformException catch (e) {
+      print(e);
+    }
+  }
+  
+  @override
+  void dispose() {
+    _every10Sec.cancel();
+    _every10Sec = null;
+    super.dispose();
+  }
+} 

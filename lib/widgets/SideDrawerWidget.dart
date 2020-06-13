@@ -130,7 +130,7 @@ class SideDrawerWidgetState extends State<SideDrawerWidget> {
                 leading: Icon(Icons.code),
                 onTap: () {
                   Navigator.of(context).pop();
-                  Navigator.pushNamed(context, '/QRCodeScreen');
+                  Navigator.pushNamed(context, '/QRScanner');
                 },
               ),
               ListTile(

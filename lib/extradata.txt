@@ -11,3 +11,21 @@ Status Of Driver in API
 
 Google MAP loaction suggestion API 
     https://maps.googleapis.com/maps/api/place/autocomplete/json?input=Mangala&types=geocode&components=country:in&key=AIzaSyCCGeITRzeGBOrjDEaVqwM0H6Ug-NtqmcU
+
+
+
+    
+1= "In Process"
+2 = "Completed"
+3 = "Unavailabel"
+4 = "Availabel"
+5 = "Booking Pending"
+6 = "Cancelled"
+
+Pending Issues:
+	Payment 
+	Trip history
+	Rate and review
+	Smooth booking trip flow
+	Socail Media registartion
+	

@@ -56,6 +56,8 @@ class CabTypeService{
     String drop_lat,
     String drop_lng,
     String payment_type,
+    int amount,
+    String driverId
     ) async {
     final http.Response response = await http.post(
       base_url+'booking-ride?access_token='+accesstoken,
@@ -72,6 +74,8 @@ class CabTypeService{
         "destinatin_lat": drop_lat,
         "destination_long": drop_lng,
         "payment_type": payment_type,
+        "amount": amount,
+        "driver_id": driverId,
       }),
     );
     var temp = json.decode(response.body);
@@ -102,6 +106,29 @@ class CabTypeService{
       return temp;
     } else {
       throw Exception('Failed call get getBookingIdDataByAccessToken method');
+    }
+  }
+
+  Future updateByTripID(String accesstoken, String tripId, String status) async {
+    final http.Response response = await http.post(
+      base_url+'update-status?access_token='+accesstoken,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Accept': '*/*',
+      },
+      body: json.encode({
+      "status": status,
+      "booking_id": tripId
+      }),
+    );
+    var temp = json.decode(response.body);
+    print(temp);
+
+    if (temp['success'].toString() == "true") {
+      temp = temp['data'];
+      return temp;
+    } else {
+      throw Exception('Failed to update trip by updateByTripID API');
     }
   }
 }

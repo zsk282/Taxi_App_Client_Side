@@ -89,9 +89,9 @@ class AuthApiService{
       temp = temp['users'];
       temp = temp['auth_key'];
       // return temp;
-      return 'f813904cd09a8b67071030a448b6f0d5';//temp;
+      return 'a50ff92ea1f23e1fabac067d0d7c074b';//temp;
     } else {
-      return 'f813904cd09a8b67071030a448b6f0d5';//temp;
+      return 'a50ff92ea1f23e1fabac067d0d7c074b';//temp;
       throw Exception('Failed to fetch Login step 2 data API');
     }
   }

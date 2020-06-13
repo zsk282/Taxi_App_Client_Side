@@ -11,6 +11,7 @@ import 'screens/InviteScreen.dart';
 import 'screens/SettingsScreen.dart';
 import 'screens/EditProfileScreen.dart';
 import 'screens/UploadImageScreen.dart';
+import 'screens/QRScanner.dart';
 
 void main() => runApp(new Myan_Lyca());
 
@@ -45,7 +46,8 @@ class Myan_Lyca extends StatelessWidget {
 				'/LoginScreen': (BuildContext context) => new LoginScreen(),
 				'/BookingScreen': (BuildContext context) => new BookingScreen(),
 				'/MyWalletScreen': (BuildContext context) => new MyWalletScreen(),
-				'/QRCodeScreen': (BuildContext context) => new QRCodeScreen(),
+				'/QRCodeScreen': (BuildContext context) => new QRCodeScreen(""),
+				'/QRScanner': (BuildContext context) => new QRScanner(),
 				'/HistoryScreen': (BuildContext context) => new HistoryScreen(),
 				'/NotificationScreen': (BuildContext context) => new NotificationScreen(),
 				'/InviteScreen': (BuildContext context) => new InviteScreen(),
