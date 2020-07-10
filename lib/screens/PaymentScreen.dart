@@ -17,11 +17,12 @@ class PaymentScreenState extends State<PaymentScreen> {
   String expiryDate = '';
   String cardHolderName = '';
   String cvvCode = '';
-  bool isCvvFocused = true;
+  bool isCvvFocused = false;
 
   var paymentService = new PaymentApiService();
   var user = null;
   var userRepository = new UserRepository();
+  String amount = null;
 
   @override
   void initState() {
@@ -49,36 +50,80 @@ class PaymentScreenState extends State<PaymentScreen> {
               ),
               Expanded(
                 child: SingleChildScrollView(
-                  child: CreditCardForm(
-                    onCreditCardModelChange: onCreditCardModelChange,
+                  child: Column(
+                    children: <Widget>[
+                      Container(
+                          width: MediaQuery.of(context).size.width * 0.92,
+                          child: TextField(
+                            onChanged: (value) {
+                              amount = value;
+                            },
+                            textAlign: TextAlign.left,
+                            decoration: new InputDecoration(
+                              hintText: 'Enter Amount to add',
+                              border: new OutlineInputBorder(
+                                borderRadius: const BorderRadius.all(
+                                  const Radius.circular(0.0),
+                                ),
+                                borderSide: new BorderSide(
+                                  color: Colors.black,
+                                  width: 1.0,
+                                ),
+                              ),
+                            ),
+                          )),
+                      CreditCardForm(
+                        onCreditCardModelChange: onCreditCardModelChange,
+                      )
+                    ],
                   ),
                 ),
               ),
-              RaisedButton( 
+              RaisedButton(
                 color: Colors.red,
                 textColor: Colors.white,
                 padding: EdgeInsets.all(5.0),
                 onPressed: () async {
                   print(cardNumber);
-                  print(expiryDate);
-                  print(cardHolderName);
+                  var split = expiryDate.split("/");
+                  print(split[0] != null ? split[0] : 0);
+                  print(split[1] != null ? split[1] : 0);
                   print(cvvCode);
+                  print(amount);
 
                   // hardcoded for now for testign purposes
                   var payment = await paymentService.addInWalletByAccessToken(
-                    user.auth_key,
-                    "4242424242424242",
-                    "2",
-                    "25",
-                    "123",
-                    "100.00",
-                    "MMK"
-                  );
-                  
-                  if(payment["transaction_id"] != null){
-                    Navigator.of(context).pop();
-                    Navigator.pushNamed(context, '/MyWalletScreen');
-                  }else{
+                      user.auth_key,
+                      cardNumber.replaceAll(new RegExp(r"\s+"), ""),
+                      split[0] != null ? split[0] : 0,
+                      split[1] != null ? split[1] : 0,
+                      cvvCode,
+                      amount != null ? amount.toString() : "0",
+                      "MMK"); //this is hardcoded for now
+
+                  if (payment != null) {
+                    if (payment["transaction_id"] != null) {
+                      Fluttertoast.showToast(
+                          msg: "Transaction Successful",
+                          toastLength: Toast.LENGTH_LONG,
+                          gravity: ToastGravity.CENTER,
+                          timeInSecForIosWeb: 5,
+                          backgroundColor: Colors.red,
+                          textColor: Colors.white,
+                          fontSize: MediaQuery.of(context).size.width * 0.050);
+                      Navigator.of(context).pop();
+                      Navigator.pushNamed(context, '/MyWalletScreen');
+                    } else {
+                      return Fluttertoast.showToast(
+                          msg: "Wallet Recharge Failed, Error in Transaction",
+                          toastLength: Toast.LENGTH_LONG,
+                          gravity: ToastGravity.CENTER,
+                          timeInSecForIosWeb: 5,
+                          backgroundColor: Colors.red,
+                          textColor: Colors.white,
+                          fontSize: MediaQuery.of(context).size.width * 0.050);
+                    }
+                  } else {
                     return Fluttertoast.showToast(
                         msg: "Wallet Recharge Failed, Error in Transaction",
                         toastLength: Toast.LENGTH_LONG,
@@ -86,8 +131,7 @@ class PaymentScreenState extends State<PaymentScreen> {
                         timeInSecForIosWeb: 5,
                         backgroundColor: Colors.red,
                         textColor: Colors.white,
-                        fontSize: MediaQuery.of(context).size.width * 0.050
-                    );
+                        fontSize: MediaQuery.of(context).size.width * 0.050);
                   }
                 },
                 child: Container(
@@ -97,8 +141,7 @@ class PaymentScreenState extends State<PaymentScreen> {
                     child: Text(
                       'Make Payment',
                       style: TextStyle(
-                        fontSize: MediaQuery.of(context).size.width * 0.050
-                      ),
+                          fontSize: MediaQuery.of(context).size.width * 0.050),
                     ),
                   ),
                 ),
@@ -106,8 +149,7 @@ class PaymentScreenState extends State<PaymentScreen> {
               SizedBox(height: MediaQuery.of(context).size.height * 0.04)
             ],
           ),
-        )
-      );
+        ));
   }
 
   void onCreditCardModelChange(CreditCardModel creditCardModel) async {
@@ -122,7 +164,7 @@ class PaymentScreenState extends State<PaymentScreen> {
 
   getUserData() async {
     var userdata = await userRepository.fetchUserFromDB();
-    setState((){
+    setState(() {
       user = userdata;
       // _getCabData();
     });

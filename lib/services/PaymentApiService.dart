@@ -4,10 +4,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-class PaymentApiService{
-
+class PaymentApiService {
   String base_url = 'http://mltaxi.codeartweb.com/api/payment';
- 
+
   Future addInWalletByAccessToken(
     String accessToken,
     String card_number,
@@ -17,19 +16,27 @@ class PaymentApiService{
     String amount,
     String currency,
   ) async {
-    final http.Response response = await http.post(
-      base_url+'/pay?access_token='+accessToken,
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Accept': '*/*',
-      },
-      body: json.encode({
+    print({
       "card_number": card_number,
       "exp_month": exp_month,
       "exp_year": exp_year,
       "security_Code": security_Code,
       "amount": amount,
       "currency": currency,
+    });
+    final http.Response response = await http.post(
+      base_url + '/pay?access_token=' + accessToken,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Accept': '*/*',
+      },
+      body: json.encode({
+        "card_number": card_number,
+        "exp_month": exp_month,
+        "exp_year": exp_year,
+        "security_Code": security_Code,
+        "amount": amount,
+        "currency": currency,
       }),
     );
     print(response.body);
@@ -40,7 +47,7 @@ class PaymentApiService{
       temp = temp['data'];
       return temp;
     } else {
-      throw Exception('Failed to update trip by updateByTripID API');
+      throw Exception('Failed to update trip by paymetn by card API');
     }
   }
 }

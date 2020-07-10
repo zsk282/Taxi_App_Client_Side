@@ -165,6 +165,6 @@ class QRCodeScreenState extends State<QRCodeScreen> {
   }
 
   bookPrefferedDriver(driverId) async {
-
+    print("Cannot do booking from here"+driverId);
   } 
 }

@@ -124,6 +124,7 @@ class EditProfileScreenState extends State<EditProfileScreen> {
                               )
                             ),
                             TextFormField(
+                              enabled: _phController.text != "" ? false : true,
                               controller: _phController,
                               validator: (value) {
                                 if (value.isEmpty) {
@@ -143,6 +144,7 @@ class EditProfileScreenState extends State<EditProfileScreen> {
                               )
                             ),
                             TextFormField(
+                              enabled: _emailController.text != "" ? false : true,
                               controller: _emailController,
                               validator: (value) {
                                 if (value.isEmpty) {

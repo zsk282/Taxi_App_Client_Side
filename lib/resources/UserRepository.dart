@@ -30,6 +30,8 @@ class UserRepository{
     var user = await _userApiService.updateUserByAccessToken(accessToken,data);
     // if data returnd by API then save that as it is that is new updated data for same User
     // AUTH should be same ***assumption
+    print("useron repository methoids >>>>>>>>>>>>>>>???????????????????/");
+    print(user);
     if(user != null){
       return _dbProvider.addUser(UserModel.fromJSON(user));
     }else{
@@ -54,6 +56,7 @@ class UserRepository{
 
   updateUserProfileImage(String accessToken, file) async {
     // update user in both database and call on API server
+    print(file);
     var user = await _userApiService.updateImageByAccessToken(accessToken,file);
     // if data returnd by API then save that as it is that is new updated data for same User
     // AUTH should be same ***assumption

@@ -29,3 +29,30 @@ Pending Issues:
 	Smooth booking trip flow
 	Socail Media registartion
 	
+Facebook
+Development Key Hash
+    Bmce+9aHdOoVtE7fS3B07tfj7Bc=
+
+
+
+F:\Taxi-App\myan_lyca_client>keytool -list -v -alias androiddebugkey -keystore "C:\Users\Saurabh Kumar\.android\debug.keystore"
+Enter keystore password:
+Alias name: androiddebugkey
+Creation date: Jun 10, 2020
+Entry type: PrivateKeyEntry
+Certificate chain length: 1
+Certificate[1]:
+Owner: C=US, O=Android, CN=Android Debug
+Issuer: C=US, O=Android, CN=Android Debug
+Serial number: 1
+Valid from: Wed Jun 10 11:25:15 IST 2020 until: Fri Jun 03 11:25:15 IST 2050
+Certificate fingerprints:
+         MD5:  09:3F:D5:9C:E2:62:97:C7:DF:9D:B7:42:95:C3:29:E3
+         SHA1: 8B:C9:4A:DE:6F:CD:7A:56:92:F2:51:C6:07:1D:8A:59:A9:80:34:D4
+         SHA256: 7C:4C:D4:B5:27:E3:34:20:4C:20:92:7D:51:2A:B8:52:43:44:32:4F:AA:8F:44:26:DF:F4:C5:E8:B9:92:F1:2C
+Signature algorithm name: SHA1withRSA
+Subject Public Key Algorithm: 2048-bit RSA key
+Version: 1
+
+Warning:
+The JKS keystore uses a proprietary format. It is recommended to migrate to PKCS12 which is an industry standard format using "keytool -importkeystore -srckeystore C:\Users\Saurabh Kumar\.android\debug.keystore -destkeystore C:\Users\Saurabh Kumar\.android\debug.keystore -deststoretype pkcs12".
