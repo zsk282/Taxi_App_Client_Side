@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:location/location.dart';
+// import 'package:location/location.dart';
 import 'package:myan_lyca_client/services/CabTypeService.dart';
 import 'package:myan_lyca_client/services/UserApiService.dart';
 import 'package:myan_lyca_client/widgets/SideDrawerWidget.dart';
@@ -19,6 +19,7 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:geolocator/geolocator.dart';
 
 class BookingScreen extends StatefulWidget {
   @override
@@ -30,10 +31,12 @@ enum ConfirmAction { CANCEL, ACCEPT }
 class BookingScreenState extends State<BookingScreen> {
   bool loading = true;
 
+  DateTime currentBackPressTime;
+
   GoogleMapController mapController;
   GoogleMapsServices _googleMapsServices = GoogleMapsServices();
   Completer<GoogleMapController> _controller = Completer();
-  var location = new Location();
+  var location = new Geolocator();
 
   final Set<Marker> _markers = {};
   final Set<Polyline> _polyLines = {};
@@ -44,7 +47,8 @@ class BookingScreenState extends State<BookingScreen> {
   LatLng selectedDestination;
   String selectedDestinationText;
 
-  LocationData currentLocation;
+  Geolocator geolocator = Geolocator()..forceAndroidLocationManager = true;
+  Position currentLocation;
 
   bool onCabSelectStep = true;
   bool onPaymentSelectStep = false;
@@ -128,16 +132,16 @@ class BookingScreenState extends State<BookingScreen> {
     new Timer.periodic(
         const Duration(seconds: 3), (Timer t) => updateCurrentTripStatus());
 
-    location.onLocationChanged.listen((currentLocation) {
-      latLng = LatLng(currentLocation.latitude, currentLocation.longitude);
-      print(" >>>>>>>>> current Location:$latLng <<<<<<<<<<<<");
+    // location.onLocationChanged.listen((currentLocation) {
+    //   latLng = LatLng(currentLocation.latitude, currentLocation.longitude);
+    //   print(" >>>>>>>>> current Location:$latLng <<<<<<<<<<<<");
 
-      if (loading) {
-        setState(() {
-          loading = false;
-        });
-      }
-    });
+    //   if (loading) {
+    //     setState(() {
+    //       loading = false;
+    //     });
+    //   }
+    // });
 
     super.initState();
   }
@@ -159,40 +163,42 @@ class BookingScreenState extends State<BookingScreen> {
         drawer: SideDrawerWidget(),
         // appBar: AppBar(),
         // resizeToAvoidBottomPadding: false,
-        body: Center(
-          child: Stack(
-            children: <Widget>[
-              googleMap(),
-              setMyLocation(),
-              // pickupLocationSearch(),
-              dropLocationSearch(),
-              Visibility(
-                visible: onCabSelectStep,
-                child: cabTypeWidget(),
+        body: WillPopScope(
+            child: Center(
+              child: Stack(
+                children: <Widget>[
+                  googleMap(),
+                  setMyLocation(),
+                  // pickupLocationSearch(),
+                  dropLocationSearch(),
+                  Visibility(
+                    visible: onCabSelectStep,
+                    child: cabTypeWidget(),
+                  ),
+                  Visibility(
+                    visible: onPaymentSelectStep,
+                    child: paymentMethodSelectWidget(),
+                  ),
+                  Visibility(
+                    visible: onDriverSideConfirmationStep,
+                    child: waitingForDriverConfirmationWidget(),
+                  ),
+                  Visibility(
+                    visible: isDriverArrivedandStartedTrip,
+                    child: isDriverArrivedandStartedTripWidget(),
+                  ),
+                  Visibility(
+                    visible: istripStarted,
+                    child: tripStartedWidget(),
+                  ),
+                  Visibility(
+                    visible: isTripCompleted,
+                    child: completeTripPopUp(),
+                  ),
+                ],
               ),
-              Visibility(
-                visible: onPaymentSelectStep,
-                child: paymentMethodSelectWidget(),
-              ),
-              Visibility(
-                visible: onDriverSideConfirmationStep,
-                child: waitingForDriverConfirmationWidget(),
-              ),
-              Visibility(
-                visible: isDriverArrivedandStartedTrip,
-                child: isDriverArrivedandStartedTripWidget(),
-              ),
-              Visibility(
-                visible: istripStarted,
-                child: tripStartedWidget(),
-              ),
-              Visibility(
-                visible: isTripCompleted,
-                child: completeTripPopUp(),
-              ),
-            ],
-          ),
-        ));
+            ),
+            onWillPop: onWillPop));
   }
 
   resetToCabSelectStep() {
@@ -207,12 +213,16 @@ class BookingScreenState extends State<BookingScreen> {
 
   getLocation() async {
     if (loading) {
-      currentLocation = await location.getLocation();
+      currentLocation = await Geolocator()
+          .getCurrentPosition(desiredAccuracy: LocationAccuracy.lowest);
       selectedCurrentLocation =
           LatLng(currentLocation.latitude, currentLocation.longitude);
       cameraMove(currentLocation.latitude, currentLocation.longitude);
       _addMarker("cur_loc",
           LatLng(currentLocation.latitude, currentLocation.longitude));
+      setState(() {
+        loading = false;
+      });
     } else {
       // cameraMove(currentLocation.latitude, currentLocation.longitude);
       _addMarker("cur_loc", latLng);
@@ -288,18 +298,18 @@ class BookingScreenState extends State<BookingScreen> {
           icon: icon,
           draggable: isDraggable,
           onDragEnd: ((value) {
-            print(
-                ">>>>>>>>>>>>>>>>>> updating current location <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+            print(">>>>>>>>>>>>>>>>>> updating current location <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
             if (markerId == "cur_loc") {
-              selectedCurrentLocation = value;
+              selectedCurrentLocation = LatLng(value.latitude, value.longitude);
             }
           })));
     });
   }
 
   void updateMarkersOfDriversNearMe() async {
-    print("user.auth_key");
-    print(user.auth_key);
+    currentLocation = await Geolocator()
+        .getCurrentPosition(desiredAccuracy: LocationAccuracy.lowest);
+
     var drivers = await cabbookingService.getNearbyCabs(
         user.auth_key,
         currentLocation.latitude.toString(),
@@ -333,7 +343,7 @@ class BookingScreenState extends State<BookingScreen> {
             markers: _markers,
             mapType: MapType.normal,
             initialCameraPosition: CameraPosition(
-              target: latLng,
+              target: selectedCurrentLocation,
               zoom: 14.0,
             ),
             onCameraMove: onCameraMove,
@@ -359,7 +369,6 @@ class BookingScreenState extends State<BookingScreen> {
                     getLocation();
                     cameraMove(
                         currentLocation.latitude, currentLocation.longitude);
-                    // drawPolylineRequest();
                   },
                   child: new Icon(
                     Icons.my_location,
@@ -666,7 +675,7 @@ class BookingScreenState extends State<BookingScreen> {
                 : Positioned(
                     bottom: MediaQuery.of(context).size.height * 0.075,
                     right: MediaQuery.of(context).size.width * 0.007,
-                    child: Icon(Icons.check, color: Colors.red, size: 40))
+                    child: Icon(Icons.check, color: Colors.black, size: 40))
           ],
         ));
   }
@@ -689,6 +698,7 @@ class BookingScreenState extends State<BookingScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
+                    SizedBox(height: 2),
                     Visibility(
                         visible: waitingForDriverConfirmation,
                         child: Center(
@@ -793,8 +803,8 @@ class BookingScreenState extends State<BookingScreen> {
                             ),
                           )
                         ]),
-                    SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.030),
+                    // SizedBox(
+                    // height: MediaQuery.of(context).size.height * 0.005),
                     RaisedButton(
                       color: Colors.red,
                       textColor: Colors.white,
@@ -813,6 +823,37 @@ class BookingScreenState extends State<BookingScreen> {
                         child: Center(
                           child: Text(
                             'REQUEST TO GO',
+                            style: TextStyle(
+                                fontSize:
+                                    MediaQuery.of(context).size.width * 0.030),
+                          ),
+                        ),
+                      ),
+                    ),
+                    RaisedButton(
+                      color: Colors.red,
+                      textColor: Colors.white,
+                      padding: EdgeInsets.all(5.0),
+                      onPressed: () async {
+                        setState(() {
+                          reviewDone = false;
+                          reviewPopupEnable = false;
+                          isTripCompleted = false;
+                          bookedTripData = null;
+                          onCabSelectStep = true;
+                          onPaymentSelectStep = false;
+                          onDriverSideConfirmationStep = false;
+                          rideStarted = false;
+                          waitingForDriverConfirmation = false;
+                          isDriverArrivedandStartedTrip = false;
+                          istripStarted = false;
+                        });
+                      },
+                      child: Container(
+                        width: MediaQuery.of(context).size.width * 0.70,
+                        child: Center(
+                          child: Text(
+                            'CANCEL',
                             style: TextStyle(
                                 fontSize:
                                     MediaQuery.of(context).size.width * 0.030),
@@ -1109,9 +1150,7 @@ class BookingScreenState extends State<BookingScreen> {
                                       itemSize:
                                           MediaQuery.of(context).size.width *
                                               0.060,
-                                      onRatingUpdate: (rating) {
-                                        print(rating);
-                                      },
+                                      onRatingUpdate: null,
                                     )
                                   ],
                                 )
@@ -1174,6 +1213,10 @@ class BookingScreenState extends State<BookingScreen> {
                             textColor: Colors.white,
                             padding: EdgeInsets.all(5.0),
                             onPressed: () async {
+                              await cabbookingService.updateByTripID(
+                                  user.auth_key,
+                                  bookedTripData["booking_id"],
+                                  "2");
                               completedTrip();
                             },
                             child: Container(
@@ -1724,8 +1767,8 @@ class BookingScreenState extends State<BookingScreen> {
         user.auth_key,
         selectedCabTypeOption.toString(),
         "User Current Location",
-        currentLocation.latitude.toString(),
-        currentLocation.longitude.toString(),
+        selectedCurrentLocation.latitude.toString(),
+        selectedCurrentLocation.longitude.toString(),
         selectedDestinationText != null ? selectedDestinationText : "Unknown",
         selectedDestination.latitude.toString(),
         selectedDestination.longitude.toString(),
@@ -1883,6 +1926,9 @@ class BookingScreenState extends State<BookingScreen> {
             children: <Widget>[
               new Expanded(
                   child: new TextField(
+                enabled: false,
+                controller: TextEditingController()
+                  ..text = bookedTripData["amount"],
                 style: new TextStyle(
                     // color: Colors.white,
                     fontSize: MediaQuery.of(context).size.width * 0.1,
@@ -1929,7 +1975,7 @@ class BookingScreenState extends State<BookingScreen> {
                     bookedTripData["amount"],
                     bookedTripData["booking_id"]);
                 print(temp);
-                if (temp['success'].toString() == 'true') {
+                if (temp != null) {
                   Navigator.of(context).pop();
                   Fluttertoast.showToast(
                       msg: "Payment Successful",
@@ -1943,7 +1989,7 @@ class BookingScreenState extends State<BookingScreen> {
                 } else {
                   Navigator.of(context).pop();
                   Fluttertoast.showToast(
-                      msg: temp["message"],
+                      msg: "Insufficient fund",
                       toastLength: Toast.LENGTH_LONG,
                       gravity: ToastGravity.CENTER,
                       timeInSecForIosWeb: 5,
@@ -1987,6 +2033,17 @@ class BookingScreenState extends State<BookingScreen> {
     var platform = new NotificationDetails(android, ios);
     await flutterLocalNotificationsPlugin.show(0, heading, body, platform,
         payload: onclickText);
+  }
+
+  Future<bool> onWillPop() {
+    DateTime now = DateTime.now();
+    if (currentBackPressTime == null ||
+        now.difference(currentBackPressTime) > Duration(seconds: 2)) {
+      currentBackPressTime = now;
+      Fluttertoast.showToast(msg: "Double tap back btton to exit");
+      return Future.value(false);
+    }
+    return Future.value(true);
   }
 
   @override

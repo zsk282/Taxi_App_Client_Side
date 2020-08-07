@@ -62,10 +62,11 @@ class HistoryScreenState extends State<HistoryScreen> {
 
       for(var i = 0; i < usertrips.length; i++ ){
         print("!!!!!!!!!!!!!!!!!");
-        print(usertrips[i]["id"]);
+        print(usertrips[i]);
 
         alltrips.add(
           tWidget(
+            usertrips[i]["destination"].toString(),
             usertrips[i]["date"].toString(),
             usertrips[i]["booking_id"],
             usertrips[i]["amount"] != null  ? usertrips[i]["amount"].toString(): "0" ,
@@ -86,7 +87,7 @@ class HistoryScreenState extends State<HistoryScreen> {
 
   }
 
-  Widget tWidget(String date, String bookingID, String amount, String trip_status){
+  Widget tWidget(String destination, String date, String bookingID, String amount, String trip_status){
     return new Card(
       child: GestureDetector(
         onTap: (){
@@ -98,6 +99,7 @@ class HistoryScreenState extends State<HistoryScreen> {
               title: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
+                  Text("Drop Location: "+destination,style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.025,color: Colors.black)),
                   Text(date,style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.02,color: Colors.black)),
                   Text(bookingID,style: TextStyle(fontSize:  MediaQuery.of(context).size.height * 0.015,color: Colors.black)),
                 ],

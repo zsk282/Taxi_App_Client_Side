@@ -1,18 +1,16 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-class CabTypeService{
-
+class CabTypeService {
   String base_url = 'http://mltaxi.codeartweb.com/api/user/';
 
   Future getAvailableCabs(String accessToken) async {
     final http.Response response = await http.post(
-      base_url+'all-cars?access_token='+accessToken,
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Accept': '*/*',
-      }
-    );
+        base_url + 'all-cars?access_token=' + accessToken,
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Accept': '*/*',
+        });
 
     var temp = json.decode(response.body);
 
@@ -26,16 +24,14 @@ class CabTypeService{
 
   Future getNearbyCabs(String accesstoken, String lat, String lng) async {
     final http.Response response = await http.post(
-      base_url+'get-available-cars?access_token='+accesstoken,
+      base_url + 'get-available-cars?access_token=' + accesstoken,
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
         'Accept': '*/*',
       },
-      body: json.encode({
-        "latitude":lat,
-        "longitude":lng
-      }),
+      body: json.encode({"latitude": lat, "longitude": lng}),
     );
+    print(accesstoken);
     var temp = json.decode(response.body);
 
     if (temp['success'].toString() == "true") {
@@ -47,20 +43,19 @@ class CabTypeService{
   }
 
   Future createTripID(
-    String accesstoken,
-    String car_type_id,
-    String pick_add,
-    String pick_lat,
-    String pick_lng,
-    String drop_add,
-    String drop_lat,
-    String drop_lng,
-    String payment_type,
-    int amount,
-    String driverId
-    ) async {
+      String accesstoken,
+      String car_type_id,
+      String pick_add,
+      String pick_lat,
+      String pick_lng,
+      String drop_add,
+      String drop_lat,
+      String drop_lng,
+      String payment_type,
+      int amount,
+      String driverId) async {
     final http.Response response = await http.post(
-      base_url+'booking-ride?access_token='+accesstoken,
+      base_url + 'booking-ride?access_token=' + accesstoken,
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
         'Accept': '*/*',
@@ -89,9 +84,18 @@ class CabTypeService{
     }
   }
 
-  Future getBookingIdDataByAccessToken(String accessToken, String bookingID) async {
-    print(base_url+"get-booking-data?access_token="+accessToken+"&booking_id="+bookingID);
-    final response = await http.get(base_url+"get-booking-data?access_token="+accessToken+"&booking_id="+bookingID);
+  Future getBookingIdDataByAccessToken(
+      String accessToken, String bookingID) async {
+    print(base_url +
+        "get-booking-data?access_token=" +
+        accessToken +
+        "&booking_id=" +
+        bookingID);
+    final response = await http.get(base_url +
+        "get-booking-data?access_token=" +
+        accessToken +
+        "&booking_id=" +
+        bookingID);
     var temp;
 
     if (response.statusCode == 200) {
@@ -99,7 +103,7 @@ class CabTypeService{
     } else {
       throw Exception('Failed call get getBookingIdDataByAccessToken method');
     }
-    
+
     temp = temp['data'];
     if (temp['success'].toString() == 'true') {
       temp = temp['bookingData'];
@@ -109,17 +113,16 @@ class CabTypeService{
     }
   }
 
-  Future updateByTripID(String accesstoken, String tripId, String status) async {
+  Future updateByTripID(
+      String accesstoken, String tripId, String status) async {
+    print(base_url + 'update-status?access_token=' + accesstoken);
     final http.Response response = await http.post(
-      base_url+'update-status?access_token='+accesstoken,
+      base_url + 'update-status?access_token=' + accesstoken,
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
         'Accept': '*/*',
       },
-      body: json.encode({
-      "status": status,
-      "booking_id": tripId
-      }),
+      body: json.encode({"status": status, "booking_id": tripId}),
     );
     var temp = json.decode(response.body);
     print(temp);
@@ -132,18 +135,16 @@ class CabTypeService{
     }
   }
 
-    Future updateTripAmountByTripID(String accesstoken, String tripId, String amount, String status) async {
+  Future updateTripAmountByTripID(
+      String accesstoken, String tripId, String amount, String status) async {
     final http.Response response = await http.post(
-      base_url+'update-status?access_token='+accesstoken,
+      base_url + 'update-status?access_token=' + accesstoken,
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
         'Accept': '*/*',
       },
-      body: json.encode({
-      "status": status,  
-      "amount": amount,
-      "booking_id": tripId
-      }),
+      body: json
+          .encode({"status": status, "amount": amount, "booking_id": tripId}),
     );
     var temp = json.decode(response.body);
     print(temp);

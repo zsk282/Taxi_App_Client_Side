@@ -1,5 +1,5 @@
 class CardPaymentModel {
-  CardType type;
+  String type;
   String number;
   String name;
   int month;

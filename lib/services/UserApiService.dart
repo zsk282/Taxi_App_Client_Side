@@ -88,6 +88,8 @@ class UserApiService {
 
   Future<Map<String, dynamic>> payDriverByAccessToken(String accessToken,
       String driver_id, String amount, String booking_id) async {
+    print(base_url + "pay-to-driverby-wallet?access_token=" + accessToken);
+    print({"driver_id": driver_id, "amount": amount, "booking_id": booking_id});
     final http.Response response = await http.post(
       base_url + "pay-to-driverby-wallet?access_token=" + accessToken,
       headers: <String, String>{

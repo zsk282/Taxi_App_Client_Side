@@ -43,9 +43,9 @@ class LoginState extends State<LoginScreen> {
     scopes: [
       'email',
       'https://www.googleapis.com/auth/contacts.readonly',
-      'https://www.googleapis.com/auth/user.emails.read',
-      'https://www.googleapis.com/auth/user.phonenumbers.read',
-      'https://www.googleapis.com/auth/userinfo.email',
+      // 'https://www.googleapis.com/auth/user.emails.readonly',
+      // 'https://www.googleapis.com/auth/user.phonenumbers.readonly',
+      // 'https://www.googleapis.com/auth/userinfo.email',
     ],
   );
 

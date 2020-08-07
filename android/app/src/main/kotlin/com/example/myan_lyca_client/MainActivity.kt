@@ -1,4 +1,4 @@
-package com.example.myan_lyca_client
+package com.myanlyca.client
 
 import androidx.annotation.NonNull;
 import io.flutter.embedding.android.FlutterActivity

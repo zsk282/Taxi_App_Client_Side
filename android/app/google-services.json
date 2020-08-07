@@ -15,11 +15,11 @@
       },
       "oauth_client": [
         {
-          "client_id": "397088453540-c496jflhvu7j8nedvk32f19j59prk08t.apps.googleusercontent.com",
+          "client_id": "397088453540-m9k2vvup70fcbqahg85rlb0kkl28k5ce.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.myanlyca.client",
-            "certificate_hash": "8bc94ade6fcd7a5692f251c6071d8a59a98034d4"
+            "certificate_hash": "65da90384f402bca43c0c992364a70cdd9794611"
           }
         },
         {
