@@ -47,7 +47,8 @@ class PaymentApiService {
       temp = temp['data'];
       return temp;
     } else {
-      throw Exception('Failed to update trip by paymetn by card API');
+      return null;
+      // throw Exception('Failed to update trip by paymetn by card API');
     }
   }
 }

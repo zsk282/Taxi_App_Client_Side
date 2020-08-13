@@ -61,7 +61,7 @@ class TripCompleteScreenState extends State<TripCompleteScreen> {
         //                 image: new DecorationImage(
         //                     fit: BoxFit.cover,
         //                     image: new NetworkImage(
-        //                       "http://mltaxi.codeartweb.com/media/default/default_car_image.png" //+user.profile_image
+        //                       "http://3.128.103.238/media/default/default_car_image.png" //+user.profile_image
         //                     )
         //                 )
         //             )

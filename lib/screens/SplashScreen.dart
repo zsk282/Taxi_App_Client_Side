@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import '../resources/UserRepository.dart';
+import '../services/UserApiService.dart';
 
 class SplashScreen extends StatefulWidget {
 	@override
@@ -26,6 +27,16 @@ class SplashScreenState extends State<SplashScreen> {
   
     if(user != null){
       print('>>>>>>> USer found in DB <<<<<<<<<');
+      
+      var userApiServiceObj = new UserApiService();
+      var tempuserCheck = await userApiServiceObj.getUserByAccessToken(user.auth_key);
+      print(tempuserCheck);
+      if(tempuserCheck == null){
+      userRepository.logoutUser();
+        Navigator.of(context).pop();
+        Navigator.pushNamed(context, '/');
+      }
+
       print(user.email);
       isLoggedIn = true;
     }else{

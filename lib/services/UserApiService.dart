@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:async/async.dart';
 
 class UserApiService {
-  String base_url = 'http://mltaxi.codeartweb.com/api/user/';
+  String base_url = 'http://3.128.103.238/api/user/';
 
   Future<Map<String, dynamic>> getUserByAccessToken(String accessToken) async {
     final response =
@@ -23,7 +23,7 @@ class UserApiService {
       temp = temp['user'];
       return temp;
     } else {
-      throw Exception('Failed to fetch login data API');
+      return null;
     }
   }
 
@@ -99,14 +99,9 @@ class UserApiService {
       body: json.encode(
           {"driver_id": driver_id, "amount": amount, "booking_id": booking_id}),
     );
-
     var temp = json.decode(response.body);
-
-    if (temp['success'].toString() == 'true') {
-      return json.decode(response.body);
-    } else {
-      return null;
-    }
+    
+    return json.decode(response.body);
   }
 
   Future ratingSubmitForDriver(String accessToken, String booking_id,

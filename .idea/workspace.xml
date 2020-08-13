@@ -10,23 +10,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="42b5c884-4534-4ad5-a56b-1f84e00ff9ad" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/android/app/src/main/res/ldpi.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/android/app/src/main/res/strings.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.flutter-plugins-dependencies" beforeDir="false" afterPath="$PROJECT_DIR$/.flutter-plugins-dependencies" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Flutter_Plugins.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Flutter_Plugins.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/google-services.json" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/google-services.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/debug/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/debug/AndroidManifest.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/AndroidManifest.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/kotlin/com/example/myan_lyca_client/MainActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/kotlin/com/example/myan_lyca_client/MainActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-hdpi/ic_launcher.png" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-hdpi/ic_launcher.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-mdpi/ic_launcher.png" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-mdpi/ic_launcher.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/profile/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/profile/AndroidManifest.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/models/CardPaymentModel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/models/CardPaymentModel.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/screens/BookingScreen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/BookingScreen.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/screens/EditProfileScreen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/EditProfileScreen.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/screens/LoginScreen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/LoginScreen.dart" afterDir="false" />
@@ -37,10 +23,7 @@
       <change beforePath="$PROJECT_DIR$/lib/services/PaymentApiService.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/services/PaymentApiService.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/services/UserApiService.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/services/UserApiService.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/widgets/SideDrawerWidget.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/widgets/SideDrawerWidget.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/myan_lyca_client.iml" beforeDir="false" afterPath="$PROJECT_DIR$/myan_lyca_client.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/widget_test.dart" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -164,10 +147,10 @@
       <screen x="0" y="0" width="1366" height="738" />
     </state>
     <state x="184" y="11" key="SettingsEditor/0.0.1366.738@0.0.1366.738" timestamp="1594927437681" />
-    <state x="100" y="100" width="1166" height="538" key="com.android.tools.idea.avdmanager.AvdListDialog" timestamp="1595849469530">
+    <state x="100" y="100" width="1166" height="538" key="com.android.tools.idea.avdmanager.AvdListDialog" timestamp="1597217263456">
       <screen x="0" y="0" width="1366" height="738" />
     </state>
-    <state x="100" y="100" width="1166" height="538" key="com.android.tools.idea.avdmanager.AvdListDialog/0.0.1366.738@0.0.1366.738" timestamp="1595849469530" />
+    <state x="100" y="100" width="1166" height="538" key="com.android.tools.idea.avdmanager.AvdListDialog/0.0.1366.738@0.0.1366.738" timestamp="1597217263456" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

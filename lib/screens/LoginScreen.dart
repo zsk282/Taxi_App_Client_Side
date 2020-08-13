@@ -99,7 +99,6 @@ class LoginState extends State<LoginScreen> {
         text: 'Continue with Facebook',
         icon: FontAwesomeIcons.facebookF,
         onPressed: () async {
-          print("11111111111111111111111111");
           final result = await facebookLogin.logIn(['email']);
           final token = result.accessToken.token;
           final graphResponse = await http.get(
