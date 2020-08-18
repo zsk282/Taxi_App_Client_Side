@@ -9,22 +9,7 @@
     <option name="TOOL_WINDOW_CONFIGURED_FILTER" value="Show only selected application" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="42b5c884-4534-4ad5-a56b-1f84e00ff9ad" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/android/app/src/main/res/strings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.flutter-plugins-dependencies" beforeDir="false" afterPath="$PROJECT_DIR$/.flutter-plugins-dependencies" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/BookingScreen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/BookingScreen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/EditProfileScreen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/EditProfileScreen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/LoginScreen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/LoginScreen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/TripCompleteScreen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/TripCompleteScreen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/UploadImageScreen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/UploadImageScreen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/services/AuthApiService.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/services/AuthApiService.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/services/CabTypeService.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/services/CabTypeService.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/services/PaymentApiService.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/services/PaymentApiService.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/services/UserApiService.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/services/UserApiService.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/widgets/SideDrawerWidget.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/widgets/SideDrawerWidget.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.lock" afterDir="false" />
-    </list>
+    <list default="true" id="42b5c884-4534-4ad5-a56b-1f84e00ff9ad" name="Default" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -52,7 +37,7 @@
     <property name="project.structure.last.edited" value="SDK Location" />
     <property name="project.structure.proportion" value="0.17" />
     <property name="project.structure.side.proportion" value="0.2" />
-    <property name="settings.editor.selected.configurable" value="configurable.group.build.tools" />
+    <property name="settings.editor.selected.configurable" value="dart.settings" />
     <property name="show.migrate.to.gradle.popup" value="false" />
   </component>
   <component name="RecentsManager">
@@ -143,10 +128,10 @@
       <screen x="0" y="0" width="1366" height="738" />
     </state>
     <state width="1323" height="570" key="GridCell.Tab.0.right/0.0.1366.738@0.0.1366.738" timestamp="1595851486300" />
-    <state x="184" y="11" key="SettingsEditor" timestamp="1594927437681">
+    <state x="184" y="11" key="SettingsEditor" timestamp="1597310703138">
       <screen x="0" y="0" width="1366" height="738" />
     </state>
-    <state x="184" y="11" key="SettingsEditor/0.0.1366.738@0.0.1366.738" timestamp="1594927437681" />
+    <state x="184" y="11" key="SettingsEditor/0.0.1366.738@0.0.1366.738" timestamp="1597310703138" />
     <state x="100" y="100" width="1166" height="538" key="com.android.tools.idea.avdmanager.AvdListDialog" timestamp="1597217263456">
       <screen x="0" y="0" width="1366" height="738" />
     </state>

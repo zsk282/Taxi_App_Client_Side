@@ -30,14 +30,14 @@ class SplashScreenState extends State<SplashScreen> {
       
       var userApiServiceObj = new UserApiService();
       var tempuserCheck = await userApiServiceObj.getUserByAccessToken(user.auth_key);
-      print(tempuserCheck);
+      // print(tempuserCheck);
       if(tempuserCheck == null){
       userRepository.logoutUser();
         Navigator.of(context).pop();
         Navigator.pushNamed(context, '/');
       }
 
-      print(user.email);
+      // print(user.email);
       isLoggedIn = true;
     }else{
       print('>>>>>>> USer NNNNOOOTTT found in DB <<<<<<<<<');

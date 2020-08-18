@@ -63,6 +63,8 @@ class EditProfileScreenState extends State<EditProfileScreen> {
                                 width: MediaQuery.of(context).size.width * 0.3,
                                 height: MediaQuery.of(context).size.width * 0.3,
                                 decoration: new BoxDecoration(
+                                    color: Colors.white,
+                                    border: Border.all(color: Colors.white),
                                     shape: BoxShape.circle,
                                     image: new DecorationImage(
                                         fit: BoxFit.cover,
