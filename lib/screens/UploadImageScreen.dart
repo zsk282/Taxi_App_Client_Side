@@ -74,10 +74,10 @@ class UploadImageScreenState extends State<UploadImageScreen> {
                                       fit: BoxFit.cover,
                                       image: new NetworkImage(user != null
                                           ? (user.profile_image != null
-                                              ? "http://3.128.103.238/" +
+                                              ? "http://mltaxi.codeartweb.com/" +
                                                   user.profile_image
                                               : "")
-                                          : "http://3.128.103.238/media/profileimage/profile-pic.jpg"))));
+                                          : "http://mltaxi.codeartweb.com/media/profileimage/profile-pic.jpg"))));
                         },
                         // future: profileImg,
                       )

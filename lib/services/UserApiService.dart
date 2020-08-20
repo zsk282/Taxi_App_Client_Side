@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:async/async.dart';
 
 class UserApiService {
-  String base_url = 'http://3.128.103.238/api/user/';
+  String base_url = 'http://mltaxi.codeartweb.com/api/user/';
 
   Future<Map<String, dynamic>> getUserByAccessToken(String accessToken) async {
     final response =

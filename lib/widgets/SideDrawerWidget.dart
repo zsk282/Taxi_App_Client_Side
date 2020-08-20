@@ -59,10 +59,10 @@ class SideDrawerWidgetState extends State<SideDrawerWidget> {
                                         fit: BoxFit.cover,
                                         image: new NetworkImage(user != null
                                             ? (user.profile_image != null
-                                                ? "http://3.128.103.238/" +
+                                                ? "http://mltaxi.codeartweb.com/" +
                                                     user.profile_image
                                                 : "")
-                                            : "http://3.128.103.238/media/profileimage/profile-pic.jpg")))),
+                                            : "http://mltaxi.codeartweb.com/media/profileimage/profile-pic.jpg")))),
                             Container(
                               margin: EdgeInsets.only(
                                   left:
@@ -113,14 +113,14 @@ class SideDrawerWidgetState extends State<SideDrawerWidget> {
           Expanded(
             flex: 3,
             child: ListView(children: [
-              ListTile(
-                title: Text("Home"),
-                leading: Icon(Icons.home),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  Navigator.pushNamed(context, '/BookingScreen');
-                },
-              ),
+              // ListTile(
+              //   title: Text("Home"),
+              //   leading: Icon(Icons.home),
+              //   onTap: () {
+              //     Navigator.of(context).pop();
+              //     Navigator.pushNamed(context, '/BookingScreen');
+              //   },
+              // ),
               ListTile(
                 title: Text("My Wallet"),
                 leading: Icon(Icons.account_balance_wallet),

@@ -646,7 +646,7 @@ class BookingScreenState extends State<BookingScreen> {
                 child: Stack(
                   children: <Widget>[
                     Column(children: <Widget>[
-                      Image.network("http://3.128.103.238/" + img,
+                      Image.network("http://mltaxi.codeartweb.com/" + img,
                           width: MediaQuery.of(context).size.width * 0.15),
                       SizedBox(
                           height: MediaQuery.of(context).size.width * 0.030),
@@ -1738,10 +1738,10 @@ class BookingScreenState extends State<BookingScreen> {
                             fit: BoxFit.cover,
                             image: new NetworkImage(user != null
                                 ? (user.profile_image != null
-                                    ? "http://3.128.103.238/" +
+                                    ? "http://mltaxi.codeartweb.com/" +
                                         user.profile_image
                                     : "")
-                                : "http://3.128.103.238/media/profileimage/profile-pic.jpg")))),
+                                : "http://mltaxi.codeartweb.com/media/profileimage/profile-pic.jpg")))),
               )
             ],
           )

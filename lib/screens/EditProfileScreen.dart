@@ -69,7 +69,7 @@ class EditProfileScreenState extends State<EditProfileScreen> {
                                     image: new DecorationImage(
                                         fit: BoxFit.cover,
                                         image: new NetworkImage(
-                                            "http://3.128.103.238/" +
+                                            "http://mltaxi.codeartweb.com/" +
                                                 user.profile_image))))))
                   ],
                 ),
