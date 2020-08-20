@@ -91,6 +91,8 @@ class BookingScreenState extends State<BookingScreen> {
   var cabbookingService = new CabTypeService();
   var userApiService = new UserApiService();
 
+  StreamSubscription<LocationResult> subscription;
+
   @override
   void initState() {
     flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
@@ -117,7 +119,7 @@ class BookingScreenState extends State<BookingScreen> {
       driverIcon = onValue;
     });
 
-    getLocation();
+    newLocationFunction();
 
     getUserData();
 
@@ -126,23 +128,48 @@ class BookingScreenState extends State<BookingScreen> {
           (Timer t) => updateMarkersOfDriversNearMe());
     }
 
-    new Timer.periodic(
-        const Duration(seconds: 3), (Timer t) => updateCurrentTripStatus());
+    new Timer.periodic(const Duration(seconds: 3), (Timer t) => updateCurrentTripStatus());
     
-    Geolocation.currentLocation(accuracy: LocationAccuracy.best).listen((temploc)  {
-      print(temploc);
-      currentLocation = temploc.location;
-      // latLng = LatLng(currentLocation.latitude, currentLocation.longitude);
-      print(" >>>>>>>>> current Location:$currentLocation <<<<<<<<<<<<");
-      if (loading) {
-        selectedCurrentLocation = LatLng(currentLocation.latitude, currentLocation.longitude);
-        cameraMove(currentLocation.latitude, currentLocation.longitude);
-        _addMarker("cur_loc", LatLng(currentLocation.latitude, currentLocation.longitude));
-        setState(() {
-          loading = false;
-        });
-      } else {
-        _addMarker("cur_loc", LatLng(currentLocation.latitude, currentLocation.longitude));
+    // Geolocation.currentLocation(accuracy: LocationAccuracy.best).listen((temploc)  {
+    //   print(temploc);
+    //   currentLocation = temploc.location;
+    //   print(" >>>>>>>>> current Location:$currentLocation <<<<<<<<<<<<");
+    //   if (loading) {
+    //     selectedCurrentLocation = LatLng(currentLocation.latitude, currentLocation.longitude);
+    //     cameraMove(currentLocation.latitude, currentLocation.longitude);
+    //     _addMarker("cur_loc", LatLng(currentLocation.latitude, currentLocation.longitude));
+    //     setState(() {
+    //       loading = false;
+    //     });
+    //   } else {
+    //     _addMarker("cur_loc", LatLng(currentLocation.latitude, currentLocation.longitude));
+    //   }
+    // });
+
+    subscription = Geolocation.locationUpdates(
+      accuracy: LocationAccuracy.best,
+      displacementFilter: 1.0, // in meters
+      inBackground: true, // by default, location updates will pause when app is inactive (in background). Set to `true` to continue updates in background.
+    ).listen((result) {
+      if(result.isSuccessful) {
+        currentLocation = result.location;
+        print(" >>>>>>>>> current Location:$currentLocation <<<<<<<<<<<<");
+        print(loading);
+        if (loading) {
+          selectedCurrentLocation = LatLng(currentLocation.latitude, currentLocation.longitude);
+          cameraMove(currentLocation.latitude, currentLocation.longitude);
+          _addMarker("cur_loc", LatLng(currentLocation.latitude, currentLocation.longitude));
+          setState(() {
+            loading = false;
+          });
+        } else {
+          if(istripStarted){
+            onlydrawPolylineRequestWhileMovingTrip();
+          }
+
+          _addMarker("cur_loc", LatLng(currentLocation.latitude, currentLocation.longitude));
+          // _addMarker("cur_loc", LatLng(26.942935,75.752707));
+        }
       }
     });
 
@@ -212,18 +239,23 @@ class BookingScreenState extends State<BookingScreen> {
     print(tripDistance);
   }
 
-  getLocation() async {
-    await newLocationFunction();
-    if (loading) {
-      // selectedCurrentLocation = LatLng(currentLocation.latitude, currentLocation.longitude);
-      cameraMove(currentLocation.latitude, currentLocation.longitude);
-      _addMarker("cur_loc",
-          LatLng(currentLocation.latitude, currentLocation.longitude));
-    } else {
-      cameraMove(currentLocation.latitude, currentLocation.longitude);
-      _addMarker("cur_loc", LatLng(currentLocation.latitude, currentLocation.longitude));
-    }
-  }
+  // getLocation() async {
+  //   await newLocationFunction();
+
+  //   if(currentLocation != null){
+  //     if (loading) {
+  //       // selectedCurrentLocation = LatLng(currentLocation.latitude, currentLocation.longitude);
+  //       cameraMove(currentLocation.latitude, currentLocation.longitude);
+  //       _addMarker("cur_loc",
+  //           LatLng(currentLocation.latitude, currentLocation.longitude));
+  //     } else {
+  //       cameraMove(currentLocation.latitude, currentLocation.longitude);
+  //       _addMarker("cur_loc", LatLng(currentLocation.latitude, currentLocation.longitude));
+  //     }
+  //   }else{
+  //     getLocation();
+  //   }
+  // }
 
   void onCameraMove(CameraPosition position) {
     latLng = position.target;
@@ -246,9 +278,23 @@ class BookingScreenState extends State<BookingScreen> {
   }
 
   void drawPolylineRequest() async {
-    Map<String, dynamic> routeData = await _googleMapsServices.getRouteCoordinates(selectedCurrentLocation, selectedDestination);
+    Map<String, dynamic> routeData = await _googleMapsServices.getRouteCoordinates( LatLng(currentLocation.latitude, currentLocation.longitude), selectedDestination);
     createRoute(routeData["route"], routeData["distance"]);
     cameraMove(selectedDestination.latitude, selectedDestination.longitude);
+    _addMarker("dest_loc", selectedDestination);
+  }
+  
+  
+  void onlydrawPolylineRequestWhileMovingTrip() async {
+    Map<String, dynamic> routeData = await _googleMapsServices.getRouteCoordinates( LatLng(currentLocation.latitude, currentLocation.longitude), selectedDestination);
+    _polyLines.remove('ongoingTrip');
+    _polyLines.add(Polyline(
+        polylineId: PolylineId('ongoingTrip'),
+        width: 3,
+        points: _convertToLatLng(_decodePoly(routeData["route"])),
+        color: Colors.red));
+
+    cameraMove(currentLocation.latitude, currentLocation.longitude);
     _addMarker("dest_loc", selectedDestination);
   }
 
@@ -274,9 +320,9 @@ class BookingScreenState extends State<BookingScreen> {
 
     if (markerId == "cur_loc") {
       icon = curLocIcon;
-      isDraggable = true;
+      isDraggable = false;
     } else if (markerId == "dest_loc") {
-      isDraggable = true;
+      isDraggable = false;
       icon = destLocIcon;
     } else {
       icon = driverIcon;
@@ -303,29 +349,29 @@ class BookingScreenState extends State<BookingScreen> {
   }
 
   void updateMarkersOfDriversNearMe() async {
-    if(currentLocation == null){
-      print("NUKKKKK");
-      await newLocationFunction();
-    }
-    var drivers = await cabbookingService.getNearbyCabs(
-        user.auth_key,
-        currentLocation.latitude.toString(),
-        currentLocation.longitude.toString());
-    if (drivers.length > 0) {
-      for (var i = 0; i < drivers.length; i++) {
-        if (drivers[i] != null) {
-          if (drivers[i]["latitude"] != null &&
-              double.parse(drivers[i]["longitude"]) != null) {
-            print("Updateing Driver " +
-                drivers[i]["driver_id"] +
-                " <<<<<<<<<<<<<<<<<<<<<<");
-            _addMarker(
-                'driver-' + drivers[i]["driver_id"],
-                LatLng(double.parse(drivers[i]["latitude"]),
-                    double.parse(drivers[i]["longitude"])));
+    if(currentLocation != null){
+      var drivers = await cabbookingService.getNearbyCabs(
+          user.auth_key,
+          currentLocation.latitude.toString(),
+          currentLocation.longitude.toString());
+      if (drivers.length > 0) {
+        for (var i = 0; i < drivers.length; i++) {
+          if (drivers[i] != null) {
+            if (drivers[i]["latitude"] != null &&
+                double.parse(drivers[i]["longitude"]) != null) {
+              print("Updateing Driver " +
+                  drivers[i]["driver_id"] +
+                  " <<<<<<<<<<<<<<<<<<<<<<");
+              _addMarker(
+                  'driver-' + drivers[i]["driver_id"],
+                  LatLng(double.parse(drivers[i]["latitude"]),
+                      double.parse(drivers[i]["longitude"])));
+            }
           }
         }
       }
+    }else{
+      await newLocationFunction();
     }
   }
 
@@ -363,7 +409,7 @@ class BookingScreenState extends State<BookingScreen> {
               children: <Widget>[
                 FlatButton(
                   onPressed: () {
-                    getLocation();
+                    newLocationFunction();
                     cameraMove(currentLocation.latitude, currentLocation.longitude);
                     // drawPolylineRequest();
                   },
@@ -1469,10 +1515,12 @@ class BookingScreenState extends State<BookingScreen> {
   }
 
   cancleTrip() async {
-    await cabbookingService.updateByTripID(
-        user.auth_key, bookedTripData["booking_id"], "0");
-    _polyLines.clear();
-    _markers.removeWhere((m) => m.markerId.value == "dest_loc");
+    if( bookedTripData != null){
+      await cabbookingService.updateByTripID(
+          user.auth_key, bookedTripData["booking_id"], "0");
+      _polyLines.clear();
+      _markers.removeWhere((m) => m.markerId.value == "dest_loc");
+    }
     cameraMove(currentLocation.latitude, currentLocation.longitude);
     setState(() {
       reviewDone = false;
@@ -2036,27 +2084,6 @@ class BookingScreenState extends State<BookingScreen> {
   }
 
   newLocationFunction() async {
-    // bool _serviceEnabled;
-    // PermissionStatus _permissionGranted;
-
-    // _serviceEnabled = await location.serviceEnabled();
-    // if (!_serviceEnabled) {
-    //   _serviceEnabled = await location.requestService();
-    //   if (!_serviceEnabled) {
-    //     return;
-    //   }
-    // }
-  
-    // _permissionGranted = await location.hasPermission();
-    // if (_permissionGranted == PermissionStatus.denied) {
-    //   _permissionGranted = await location.requestPermission();
-    //   if (_permissionGranted != PermissionStatus.granted) {
-    //     return;
-    //   }
-    // }
-    // await location.changeSettings(
-    //   accuracy: LocationAccuracy.low,
-    // );
     final GeolocationResult result = await Geolocation.requestLocationPermission(
       permission: LocationPermission(
         android: LocationPermissionAndroid.fine,
@@ -2067,23 +2094,33 @@ class BookingScreenState extends State<BookingScreen> {
 
     if(result.isSuccessful) {
       // location permission is granted (or was already granted before making the request)
-      currentLocation = await Geolocation.lastKnownLocation();
-      currentLocation = currentLocation.location;
-      if (loading) {
-        selectedCurrentLocation = LatLng(currentLocation.latitude, currentLocation.longitude);
-        cameraMove(currentLocation.latitude, currentLocation.longitude);
-        _addMarker("cur_loc", LatLng(currentLocation.latitude, currentLocation.longitude));
-        setState(() {
-          loading = false;
-        });
-      } else {
-        _addMarker("cur_loc", LatLng(currentLocation.latitude, currentLocation.longitude));
-      }
+      // currentLocation = await Geolocation.lastKnownLocation();
+
+      Geolocation.currentLocation(accuracy: LocationAccuracy.best).listen((resultLoc) {
+        if(resultLoc.isSuccessful) {
+          currentLocation = resultLoc.location;
+          print(currentLocation);
+        
+          if (loading) {
+            selectedCurrentLocation = LatLng(currentLocation.latitude, currentLocation.longitude);
+            cameraMove(currentLocation.latitude, currentLocation.longitude);
+            _addMarker("cur_loc", LatLng(currentLocation.latitude, currentLocation.longitude));
+            setState(() {
+              loading = false;
+            });
+          } else {
+            _addMarker("cur_loc", LatLng(currentLocation.latitude, currentLocation.longitude));
+          }
+        }else{
+          newLocationFunction();
+        }
+      });
     }
   }
 
   @override
   void dispose() {
+    subscription.cancel();
     _every10Sec.cancel();
     _every10Sec = null;
     super.dispose();
