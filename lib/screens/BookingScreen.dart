@@ -38,6 +38,8 @@ class BookingScreenState extends State<BookingScreen> {
   Completer<GoogleMapController> _controller = Completer();
   // var location = new Location();
 
+  var nearbyDriver = [];
+
   final Set<Marker> _markers = {};
   final Set<Polyline> _polyLines = {};
   Set<Polyline> get polyLines => _polyLines;
@@ -86,6 +88,8 @@ class BookingScreenState extends State<BookingScreen> {
   var bookingId = null;
   var bookedDriverId = "";
   var bookedTripData = null;
+
+  int baseprice = 1000;
 
   var availableCabsType;
   var cabbookingService = new CabTypeService();
@@ -354,14 +358,21 @@ class BookingScreenState extends State<BookingScreen> {
           user.auth_key,
           currentLocation.latitude.toString(),
           currentLocation.longitude.toString());
+      
+      print("NNNNNNNNNNNNNNOOOOOOOOO DRRRRRRRRRRIVERRRRRRRRRRS");
       if (drivers.length > 0) {
         for (var i = 0; i < drivers.length; i++) {
+          nearbyDriver.clear();
           if (drivers[i] != null) {
             if (drivers[i]["latitude"] != null &&
                 double.parse(drivers[i]["longitude"]) != null) {
               print("Updateing Driver " +
                   drivers[i]["driver_id"] +
                   " <<<<<<<<<<<<<<<<<<<<<<");
+
+                if(nearbyDriver.indexOf('driver-' + drivers[i]["driver_id"]) < 0){
+                  nearbyDriver.add('driver-' + drivers[i]["driver_id"]);
+                }
               _addMarker(
                   'driver-' + drivers[i]["driver_id"],
                   LatLng(double.parse(drivers[i]["latitude"]),
@@ -369,6 +380,11 @@ class BookingScreenState extends State<BookingScreen> {
             }
           }
         }
+        print(nearbyDriver);
+        _markers.removeWhere((m) => (nearbyDriver.indexOf(m.markerId.value) == -1 && m.markerId.value.contains('driver') ) );
+        setState(() {
+          
+        });
       }
     }else{
       await newLocationFunction();
@@ -545,10 +561,10 @@ class BookingScreenState extends State<BookingScreen> {
                       }
                     },
                     onSuggestionSelected: (suggestion) async {
-                      // var destCoord = await _googleMapsServices.latLngByPlaceId(suggestion['place_id']);
+                      var destCoord = await _googleMapsServices.latLngByPlaceId(suggestion['place_id']);
                       this._typeAheadController.text = suggestion["name"];
                       selectedDestination =
-                          LatLng(suggestion["lat"], suggestion["lng"]);
+                          LatLng(destCoord["lat"], destCoord["lng"]);
                       selectedDestinationText = suggestion["name"];
                       drawPolylineRequest();
                     },
@@ -599,6 +615,11 @@ class BookingScreenState extends State<BookingScreen> {
 
   void selectThisCab(id, title, price) {
     setState(() {
+      if(id == 1){
+        baseprice = 1500;
+      }else{
+        baseprice = 1000;
+      }
       selectedCabTypeRate = price;
       // availCabCheckSign[title] = true; //not needed now
       selectedCabTypeOption = id;
@@ -692,7 +713,7 @@ class BookingScreenState extends State<BookingScreen> {
                 child: Stack(
                   children: <Widget>[
                     Column(children: <Widget>[
-                      Image.network("http://mltaxi.codeartweb.com/" + img,
+                      Image.network("http://3.128.103.238/" + img,
                           width: MediaQuery.of(context).size.width * 0.15),
                       SizedBox(
                           height: MediaQuery.of(context).size.width * 0.030),
@@ -825,7 +846,7 @@ class BookingScreenState extends State<BookingScreen> {
                                     width: MediaQuery.of(context).size.width *
                                         0.05),
                                 Text(
-                                  "K " +
+                                  "MMK " +
                                       ((((tripDistance != 0
                                                       ? tripDistance
                                                       : 0) *
@@ -833,7 +854,7 @@ class BookingScreenState extends State<BookingScreen> {
                                                       ? int.parse(
                                                           selectedCabTypeRate)
                                                       : 0)) /
-                                              1000))
+                                              1000) + baseprice)
                                           .round()
                                           .toString(),
                                   style: TextStyle(
@@ -1141,9 +1162,7 @@ class BookingScreenState extends State<BookingScreen> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: <Widget>[
-                                Image.asset("assets/images/car@3x.png",
-                                    width: MediaQuery.of(context).size.width *
-                                        0.15),
+                                bookedTripData != null ? Image.network("http://3.128.103.238/" + bookedTripData["driver_profile_image"], width: MediaQuery.of(context).size.width * 0.15) : Image.asset("assets/images/car@3x.png", width: MediaQuery.of(context).size.width * 0.15),
                                 SizedBox(
                                     width: MediaQuery.of(context).size.width *
                                         0.05),
@@ -1301,9 +1320,7 @@ class BookingScreenState extends State<BookingScreen> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: <Widget>[
-                                Image.asset("assets/images/car@3x.png",
-                                    width: MediaQuery.of(context).size.width *
-                                        0.15),
+                                bookedTripData != null ? Image.network("http://3.128.103.238/" + bookedTripData["driver_profile_image"], width: MediaQuery.of(context).size.width * 0.15) : Image.asset("assets/images/car@3x.png", width: MediaQuery.of(context).size.width * 0.15),
                                 SizedBox(
                                     width: MediaQuery.of(context).size.width *
                                         0.05),
@@ -1542,7 +1559,7 @@ class BookingScreenState extends State<BookingScreen> {
                 (selectedCabTypeRate != null
                     ? int.parse(selectedCabTypeRate)
                     : 0)) /
-            1000))
+            1000) + baseprice)
         .round()
         .toString();
     await cabbookingService.updateByTripID(
@@ -1786,10 +1803,10 @@ class BookingScreenState extends State<BookingScreen> {
                             fit: BoxFit.cover,
                             image: new NetworkImage(user != null
                                 ? (user.profile_image != null
-                                    ? "http://mltaxi.codeartweb.com/" +
+                                    ? "http://3.128.103.238/" +
                                         user.profile_image
                                     : "")
-                                : "http://mltaxi.codeartweb.com/media/profileimage/profile-pic.jpg")))),
+                                : "http://3.128.103.238/media/profileimage/profile-pic.jpg")))),
               )
             ],
           )
@@ -1823,7 +1840,7 @@ class BookingScreenState extends State<BookingScreen> {
                     (selectedCabTypeRate != null
                         ? int.parse(selectedCabTypeRate)
                         : 0)) /
-                1000))
+                1000)+baseprice)
             .round(),
         bookedDriverId);
 
@@ -2115,6 +2132,8 @@ class BookingScreenState extends State<BookingScreen> {
           newLocationFunction();
         }
       });
+    }else{
+      newLocationFunction();
     }
   }
 

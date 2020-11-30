@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class PaymentApiService {
-  String base_url = 'http://mltaxi.codeartweb.com/api/payment';
+  String base_url = 'http://3.128.103.238/api/payment';
 
   Future addInWalletByAccessToken(
     String accessToken,

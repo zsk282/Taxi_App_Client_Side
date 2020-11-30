@@ -60,6 +60,8 @@ class UserRepository{
     var user = await _userApiService.updateImageByAccessToken(accessToken,file);
     // if data returnd by API then save that as it is that is new updated data for same User
     // AUTH should be same ***assumption
+    await _dbProvider.logoutUser();
+    
     if(user != null){
       return _dbProvider.addUser(UserModel.fromJSON(user));
     }else{

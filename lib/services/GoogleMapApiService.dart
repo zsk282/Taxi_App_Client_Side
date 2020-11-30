@@ -18,20 +18,35 @@ class GoogleMapsServices{
 
     // String url = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$keyword&types=geocode&language=$language&key=$apiKey";
     // String url = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$keyword&types=geocode&language=$language&components=country:in&key=$apiKey";
-    String url = "https://maps.googleapis.com/maps/api/place/textsearch/json?location=$lat,$lng&radius=50000&query=$keyword&key=$apiKey";
-    print(url);
-    http.Response response = await http.get(url);
-    Map values = jsonDecode(response.body);
+    // String url = "https://maps.googleapis.com/maps/api/place/textsearch/json?location=$lat,$lng&radius=50000&query=$keyword&key=$apiKey";
+    String url = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$keyword&type=geocode&types=address&types=establishment&language=my&key=AIzaSyCCGeITRzeGBOrjDEaVqwM0H6Ug-NtqmcU&location=$lat,$lng&radius=5000&components=country:mm";
+    String urladdress = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$keyword&types=address&language=my&key=AIzaSyCCGeITRzeGBOrjDEaVqwM0H6Ug-NtqmcU&location=$lat,$lng&radius=5000&components=country:mm";
+    String urlestablishment = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$keyword&types=establishment&language=my&key=AIzaSyCCGeITRzeGBOrjDEaVqwM0H6Ug-NtqmcU&location=$lat,$lng&radius=5000&components=country:mm";
+    
+    http.Response response1 = await http.get(url);
+    var values1 = jsonDecode(response1.body);
+    values1 = values1['predictions'];
+    http.Response response2 = await http.get(urladdress);
+    var values2 = jsonDecode(response2.body);
+    values2 = values2['predictions'];
+    http.Response response3 = await http.get(urlestablishment);
+    var values3 = jsonDecode(response3.body);
+    values3 = values3['predictions'];
+
+    var resp = values1+values2+values3;
+
+    // print(response.body);
+    // values = jsonDecode(values);
     print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    print(values);
+    print(resp);
     print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    if(values["results"].length > 0){
-      for(var i=0; i < values["results"].length; i++){
+    if(resp.length > 0){
+      for(var i=0; i < resp.length; i++){
         results.add({
-          "name": values["results"][i]["name"],
-          "place_id": values["results"][i]["place_id"],
-          "lat": values["results"][i]["geometry"]["location"]["lat"],
-          "lng": values["results"][i]["geometry"]["location"]["lng"],
+          "name": resp[i]["description"],
+          "place_id": resp[i]["place_id"],
+          // "lat": values[i]["geometry"]["location"]["lat"],
+          // "lng": values[i]["geometry"]["location"]["lng"],
         });  
       }
     }

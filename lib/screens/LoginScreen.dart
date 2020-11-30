@@ -251,13 +251,17 @@ class LoginState extends State<LoginScreen> {
         child: Wrap(
           children: <Widget>[
             Container(
-                width: MediaQuery.of(context).size.width * 0.5,
+                width: MediaQuery.of(context).size.width * 0.4,
                 decoration: BoxDecoration(
                   border: Border(
                     bottom: BorderSide(width: 1.0, color: Colors.white),
                   ),
                 ),
                 child: TextField(
+                  textInputAction: TextInputAction.go,
+                  onSubmitted: (value) {
+                    validateOtpAndGetAccessToken(mobileNumber,otp);
+                  },
                   onChanged: (value) {
                     if (value.length == 6) {
                       print(
@@ -275,9 +279,9 @@ class LoginState extends State<LoginScreen> {
                       color: Colors.white,
                       fontSize: MediaQuery.of(context).size.width * 0.04,
                       fontWeight: FontWeight.w400),
-                  textAlign: TextAlign.center,
+                  textAlign: TextAlign.left,
                   keyboardType: TextInputType.number,
-                  textInputAction: TextInputAction.next,
+                  // textInputAction: TextInputAction.next,
                   inputFormatters: <TextInputFormatter>[
                     LengthLimitingTextInputFormatter(6),
                     WhitelistingTextInputFormatter.digitsOnly
@@ -288,16 +292,27 @@ class LoginState extends State<LoginScreen> {
                           fontSize: MediaQuery.of(context).size.width * 0.04,
                           color: Colors.white),
                       border: InputBorder.none,
-                      suffixIcon: Visibility(
-                        visible: isOtp,
-                        child: IconButton(
-                            color: Colors.white,
-                            icon: Icon(Icons.keyboard_arrow_right,
-                                color: Colors.white),
-                            onPressed: () {
-                              validateOtpAndGetAccessToken(mobileNumber, otp);
-                            }),
-                      )),
+                      prefixIcon: IconButton(
+                        color: Colors.white,
+                        icon: Icon(Icons.keyboard_arrow_left,
+                            color: Colors.white),
+                        onPressed: () {
+                          setState(() {
+                            isOtp = false;
+                          });
+                        }
+                      ),
+                      // suffixIcon: Visibility(
+                      //   visible: isOtp,
+                      //   child: IconButton(
+                      //       color: Colors.white,
+                      //       icon: Icon(Icons.keyboard_arrow_right,
+                      //           color: Colors.white),
+                      //       onPressed: () {
+                      //         validateOtpAndGetAccessToken(mobileNumber, otp);
+                      //       }),
+                      // )
+                    ),
                 ))
           ],
         ),
@@ -362,7 +377,14 @@ class LoginState extends State<LoginScreen> {
                       fontWeight: FontWeight.w400),
                   textAlign: TextAlign.left,
                   keyboardType: TextInputType.number,
+                  // textInputAction: TextInputAction.next,
                   textInputAction: TextInputAction.next,
+                  onSubmitted: (value) {
+                    getOtp(countryMobileCode, mobileNumber);
+                    setState(() {
+                      isOtp = true;
+                    });
+                  },
                   inputFormatters: <TextInputFormatter>[
                     LengthLimitingTextInputFormatter(10),
                     WhitelistingTextInputFormatter.digitsOnly
@@ -373,19 +395,19 @@ class LoginState extends State<LoginScreen> {
                         fontSize: MediaQuery.of(context).size.width * 0.04,
                         color: Colors.white),
                     border: InputBorder.none,
-                    suffixIcon: Visibility(
-                      visible: allowGetOtp,
-                      child: IconButton(
-                          color: Colors.white,
-                          icon: Icon(Icons.keyboard_arrow_right,
-                              color: Colors.white),
-                          onPressed: () {
-                            getOtp(countryMobileCode, mobileNumber);
-                            setState(() {
-                              isOtp = true;
-                            });
-                          }),
-                    ),
+                    // suffixIcon: Visibility(
+                    //   visible: allowGetOtp,
+                    //   child: IconButton(
+                    //       color: Colors.white,
+                    //       icon: Icon(Icons.keyboard_arrow_right,
+                    //           color: Colors.white),
+                    //       onPressed: () {
+                    //         getOtp(countryMobileCode, mobileNumber);
+                    //         setState(() {
+                    //           isOtp = true;
+                    //         });
+                    //       }),
+                    // ),
                   ),
                 ))
           ],
@@ -494,15 +516,28 @@ class LoginState extends State<LoginScreen> {
 
   validateOtpAndGetAccessToken(String countryMobileCode, String otp) async {
     userAccessToken = await loginObj.validateOTP(mobileNumber, otp);
-    print('>>> OTP VALIDATION: $userAccessToken <<<<<<<<<<<<<<<');
 
-    var userID = await userRepository.loginUser(userAccessToken);
+    if(userAccessToken != null){
+      print('>>> OTP VALIDATION: $userAccessToken <<<<<<<<<<<<<<<');
 
-    print('>>>> User id: $userID Logged in in application <<<<<<< ');
-    if (userAccessToken != null) {
-      Navigator.pushReplacementNamed(context, '/BookingScreen');
-    } else {
-      print(' ERROROR IN fetching user Details');
+      var userID = await userRepository.loginUser(userAccessToken);
+
+      print('>>>> User id: $userID Logged in in application <<<<<<< ');
+      if (userAccessToken != null) {
+        Navigator.pushReplacementNamed(context, '/BookingScreen');
+      } else {
+        print(' ERROROR IN fetching user Details');
+      }
+    }else{
+      Fluttertoast.showToast(
+        msg: "Invalid OTP",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 5,
+        backgroundColor: Colors.white,
+        textColor: Colors.red,
+        fontSize: MediaQuery.of(context).size.width * 0.050
+      );
     }
   }
 

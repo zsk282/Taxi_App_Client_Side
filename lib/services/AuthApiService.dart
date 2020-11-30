@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class AuthApiService {
-  String base_url = 'http://mltaxi.codeartweb.com/api/';
+  String base_url = 'http://3.128.103.238/api/';
 
   Future<String> getOTP(
       String countryMobileCode,
@@ -139,7 +139,8 @@ class AuthApiService {
       // return 'a50ff92ea1f23e1fabac067d0d7c074b';//temp;
     } else {
       // return 'a50ff92ea1f23e1fabac067d0d7c074b';//temp;
-      throw Exception('Failed to fetch Login step 2 data API');
+      return null;//temp;
+      // throw Exception('Failed to fetch Login step 2 data API');
     }
   }
 }

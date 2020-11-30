@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class CabTypeService {
-  String base_url = 'http://mltaxi.codeartweb.com/api/user/';
+  String base_url = 'http://3.128.103.238/api/user/';
 
   Future getAvailableCabs(String accessToken) async {
     final http.Response response = await http.post(
@@ -31,9 +31,10 @@ class CabTypeService {
       },
       body: json.encode({"latitude": lat, "longitude": lng}),
     );
-    print(accesstoken);
+    print(base_url + 'get-available-cars?access_token=' + accesstoken);
+    print({"latitude": lat, "longitude": lng});
     var temp = json.decode(response.body);
-
+    print(temp);
     if (temp['success'].toString() == "true") {
       temp = temp['data'];
       return temp;
