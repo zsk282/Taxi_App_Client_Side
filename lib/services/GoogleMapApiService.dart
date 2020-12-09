@@ -19,9 +19,9 @@ class GoogleMapsServices{
     // String url = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$keyword&types=geocode&language=$language&key=$apiKey";
     // String url = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$keyword&types=geocode&language=$language&components=country:in&key=$apiKey";
     // String url = "https://maps.googleapis.com/maps/api/place/textsearch/json?location=$lat,$lng&radius=50000&query=$keyword&key=$apiKey";
-    String url = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$keyword&type=geocode&types=address&types=establishment&language=my&key=AIzaSyCCGeITRzeGBOrjDEaVqwM0H6Ug-NtqmcU&location=$lat,$lng&radius=5000&components=country:mm";
-    String urladdress = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$keyword&types=address&language=my&key=AIzaSyCCGeITRzeGBOrjDEaVqwM0H6Ug-NtqmcU&location=$lat,$lng&radius=5000&components=country:mm";
-    String urlestablishment = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$keyword&types=establishment&language=my&key=AIzaSyCCGeITRzeGBOrjDEaVqwM0H6Ug-NtqmcU&location=$lat,$lng&radius=5000&components=country:mm";
+    String url = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$keyword&type=geocode&types=address&types=establishment&language=my&key=AIzaSyCCGeITRzeGBOrjDEaVqwM0H6Ug-NtqmcU&location=$lat,$lng&radius=5000&components=country:in";
+    String urladdress = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$keyword&types=address&language=my&key=AIzaSyCCGeITRzeGBOrjDEaVqwM0H6Ug-NtqmcU&location=$lat,$lng&radius=5000&components=country:in";
+    String urlestablishment = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$keyword&types=establishment&language=my&key=AIzaSyCCGeITRzeGBOrjDEaVqwM0H6Ug-NtqmcU&location=$lat,$lng&radius=5000&components=country:in";
     
     http.Response response1 = await http.get(url);
     var values1 = jsonDecode(response1.body);

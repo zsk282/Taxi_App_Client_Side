@@ -326,7 +326,7 @@ class BookingScreenState extends State<BookingScreen> {
       icon = curLocIcon;
       isDraggable = false;
     } else if (markerId == "dest_loc") {
-      isDraggable = false;
+      isDraggable = true;
       icon = destLocIcon;
     } else {
       icon = driverIcon;
@@ -347,6 +347,9 @@ class BookingScreenState extends State<BookingScreen> {
                 ">>>>>>>>>>>>>>>>>> updating current location <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
             if (markerId == "cur_loc") {
               selectedCurrentLocation = value;
+            }else if (markerId == "dest_loc") {
+              selectedDestination = value;
+              drawPolylineRequest();
             }
           })));
     });
